@@ -1,0 +1,47 @@
+# $Csoft: configure.in,v 1.1 2005/09/28 15:46:13 vedge Exp $
+# Public domain
+
+REGISTER("--enable-static",	"Produce a static binary [default: no]")
+REGISTER("--enable-warnings",	"Enable compiler warnings [default: no]")
+
+HDEFINE(VERSION, "\"06112007\"")
+HDEFINE(RELEASE, "\"Worlds of Glass\"")
+
+CHECK(cc)
+CHECK(agar, 1.3)
+CHECK(agar-sg, 1.3)
+CHECK(pthreads)
+
+if [ "${HAVE_AGAR}" = "no" ]; then
+	echo "*"
+	echo "* Agar is not installed on your system. It is required by"
+	echo "* this package. You can download it from http://agar.csoft.org/."
+	echo "*"
+	exit 1
+fi
+if [ "${HAVE_AGAR_SG}" = "no" ]; then
+	echo "*"
+	echo "* Agar-SG is not installed on your system. It is required by"
+	echo "* this package. You can download it from http://agar-sg.csoft.org/."
+	echo "*"
+	exit 1
+fi
+if [ "${HAVE_PTHREADS}" = "no" ]; then
+	echo "*"
+	echo "* This application requires threads, but I was unable to locate"
+	echo "* a POSIX threads library."
+	echo "*"
+	exit 1
+fi
+
+MDEFINE(CFLAGS, "$CFLAGS -I$SRC")
+#MDEFINE(CFLAGS, "$CFLAGS -Wall -Werror -Wmissing-prototypes -Wno-unused")
+#MDEFINE(CFLAGS, "$CFLAGS -Wno-missing-headers")
+
+if [ "${enable_warnings}" = "yes" ]; then
+	MDEFINE(CFLAGS, "$CFLAGS -Wall -Werror -Wmissing-prototypes")
+	MDEFINE(CFLAGS, "$CFLAGS -Wno-unused")
+fi
+if [ "${enable_static}" = "yes" ]; then
+	MDEFINE(LDFLAGS, "-static")
+fi
