@@ -23,8 +23,9 @@
  * USE OF THIS SOFTWARE EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <agar/core/core.h>
+#include <agar/core.h>
 
+#include "cadtools.h"
 #include "exboss.h"
 
 const AG_ObjectOps cadExtrudedBossOps = {
