@@ -152,7 +152,6 @@ CAM_MachineAttached(AG_Event *event)
 	CAM_Machine *ma = AG_SELF();
 	SG_Light *lt;
 
-	printf("%s: creating thread\n", AGOBJECT(ma)->name);
 	AG_ThreadCreate(&ma->thNet, NULL, CAM_MachineThread, ma);
 	AG_ThreadCreate(&ma->thInact, NULL, CAM_InactivityCheck, ma);
 	
@@ -167,6 +166,7 @@ CAM_MachineAttached(AG_Event *event)
 		lt->Kc = 0.25;
 		lt->Kl = 0.05;
 	}
+	AG_ObjectPageIn(ma->model);
 }
 
 static void
@@ -187,7 +187,12 @@ CAM_MachineDetached(AG_Event *event)
 		AG_MutexUnlock(&ma->lock);
 		SDL_Delay(1000);
 	}
+	if (i == 10) {
+		fprintf(stderr, "%s: threads are not responding!\n",
+		    AGOBJECT(ma)->name);
+	}
 out:
+	AG_ObjectPageOut(ma->model);
 	return;
 }
 
@@ -209,6 +214,7 @@ CAM_MachineInit(void *obj, const char *name)
 	NC_Init(&ma->sess, _PROTO_MACHCTL_NAME, _PROTO_MACHCTL_VER);
 	AG_SetEvent(ma, "attached", CAM_MachineAttached, NULL);
 	AG_SetEvent(ma, "detached", CAM_MachineDetached, NULL);
+	AG_MutexInitRecursive(&ma->lock);
 }
 
 void
@@ -216,7 +222,9 @@ CAM_MachineDestroy(void *obj)
 {
 	CAM_Machine *ma = obj;
 
+	AG_PostEvent(NULL, ma, "detached", NULL);
 	NC_Destroy(&ma->sess);
+	AG_MutexDestroy(&ma->lock);
 }
 
 int
@@ -419,14 +427,14 @@ CAM_MachineEdit(void *obj)
 	ntab = AG_NotebookAddTab(nb, _("Program Queue"), AG_BOX_VERT);
 	{
 		pane = AG_PaneNew(ntab, AG_PANE_VERT, AG_PANE_EXPAND);
-		lbl = AG_LabelNewStatic(pane->div[0], _("Upload queue:"));
+		lbl = AG_LabelNewStatic(pane->div[0], 0, _("Upload queue:"));
 		AG_LabelSetPaddingBottom(lbl, 4);
 		tbl = AG_TableNewPolled(pane->div[0], AG_TABLE_EXPAND,
 		    PollUploadQueue, "%p", ma);
 		AG_TableAddCol(tbl, _("Program"), "<XXXXXXXXXXXXXX>", NULL);
 		AG_TableAddCol(tbl, _("Status"), NULL, NULL);
 
-		lbl = AG_LabelNewStatic(pane->div[1], _("Remote queue:"));
+		lbl = AG_LabelNewStatic(pane->div[1], 0, _("Remote queue:"));
 		AG_LabelSetPaddingBottom(lbl, 4);
 		tbl = AG_TableNewPolled(pane->div[1], AG_TABLE_EXPAND,
 		    PollControllerQueue, "%p", ma);
