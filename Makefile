@@ -6,8 +6,9 @@ include Makefile.config
 PROG=	cadtools
 SRCS=	cadtools.c part.c feature.c exboss.c program.c machine.c
 
-CFLAGS+=${AGAR_CFLAGS} ${AGAR_SG_CFLAGS} -I.
-LIBS+=	${AGAR_LIBS} ${AGAR_SG_LIBS}
+CFLAGS+=${AGAR_CFLAGS} ${AGAR_DEV_CFLAGS} ${AGAR_SG_CFLAGS} -I. \
+	-D_USE_AGAR_MATH
+LIBS+=	${AGAR_LIBS} ${AGAR_DEV_LIBS} ${AGAR_SG_LIBS}
 
 all: all-subdir ${PROG}
 clean: clean-prog clean-subdir
