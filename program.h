@@ -27,8 +27,8 @@ void	 	 CAM_ProgramInit(void *, const char *);
 void		 CAM_ProgramReinit(void *);
 void		 CAM_ProgramDestroy(void *);
 void		*CAM_ProgramEdit(void *);
-int		 CAM_ProgramLoad(void *, AG_Netbuf *);
-int		 CAM_ProgramSave(void *, AG_Netbuf *);
+int		 CAM_ProgramLoad(void *, AG_DataSource *);
+int		 CAM_ProgramSave(void *, AG_DataSource *);
 __END_DECLS
 
 #include "close_code.h"

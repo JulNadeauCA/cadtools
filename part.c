@@ -73,11 +73,11 @@ CAD_PartInit(void *obj, const char *name)
 
 	cam = SG_CameraNew(part->sg->root, "CameraLeft");
 	SG_Translate3(cam, -5.0, 0.0, -5.0);
-	SG_Rotatevd(cam, -90.0, SG_J);
+	SG_Rotatevd(cam, -90.0, VecJ());
 	
 	cam = SG_CameraNew(part->sg->root, "CameraTop");
 	SG_Translate3(cam, 0.0, 5.0, -5.0);
-	SG_Rotatevd(cam, -90.0, SG_I);
+	SG_Rotatevd(cam, -90.0, VecI());
 
 	lt = SG_LightNew(part->sg->root, "Light0");
 	SG_Translate3(lt, -6.0, 6.0, -6.0);
@@ -96,7 +96,7 @@ CAD_PartDestroy(void *obj)
 }
 
 int
-CAD_PartLoad(void *obj, AG_Netbuf *buf)
+CAD_PartLoad(void *obj, AG_DataSource *buf)
 {
 	CAD_Part *part = obj;
 
@@ -109,7 +109,7 @@ CAD_PartLoad(void *obj, AG_Netbuf *buf)
 }
 
 int
-CAD_PartSave(void *obj, AG_Netbuf *buf)
+CAD_PartSave(void *obj, AG_DataSource *buf)
 {
 	CAD_Part *part = obj;
 
@@ -238,8 +238,7 @@ CAD_PartEdit(void *obj)
 	AG_Toolbar *toolbar;
 	AG_Menu *menu;
 	AG_MenuItem *pitem, *subitem;
-	AG_HPane *pane;
-	AG_HPaneDiv *div;
+	AG_Pane *hPane;
 	SG_View *sgv;
 
 	win = AG_WindowNew(0);
@@ -255,16 +254,16 @@ CAD_PartEdit(void *obj)
 	pitem = AG_MenuAddItem(menu, _("File"));
 	{
 #if 0
-		AG_MenuActionKb(pitem, _("Revert"), OBJLOAD_ICON,
+		AG_MenuActionKb(pitem, _("Revert"), agIconLoad.s,
 		    SDLK_r, KMOD_CTRL, RevertPart, "%p", part);
-		AG_MenuActionKb(pitem, _("Save"), OBJSAVE_ICON,
+		AG_MenuActionKb(pitem, _("Save"), agIconSave.s,
 		    SDLK_s, KMOD_CTRL, SavePart, "%p", part);
 		AG_MenuSeparator(pitem);
-		AG_MenuAction(pitem, _("Document properties..."), SETTINGS_ICON,
+		AG_MenuAction(pitem, _("Document properties..."), agIconGear.s,
 		    ShowDocumentProps, "%p,%p", win, part);
 #endif
 		AG_MenuSeparator(pitem);
-		AG_MenuActionKb(pitem, _("Close document"), CLOSE_ICON,
+		AG_MenuActionKb(pitem, _("Close document"), agIconClose.s,
 		    SDLK_w, KMOD_CTRL, AGWINCLOSE(win));
 	}
 	
@@ -272,47 +271,45 @@ CAD_PartEdit(void *obj)
 	{
 		extern AG_ObjectOps cadExtrudedBossOps;
 	
-		AG_MenuAction(pitem, _("Extruded boss/base"), -1,
+		AG_MenuAction(pitem, _("Extruded boss/base"), NULL,
 		    InsertFeature, "%p,%p,%s", part, &cadExtrudedBossOps,
 		    _("Extrusion"));
 	}
 
 	pitem = AG_MenuAddItem(menu, _("Edit"));
 	{
-		AG_MenuAction(pitem, _("Undo"), -1, NULL, NULL);
-		AG_MenuAction(pitem, _("Redo"), -1, NULL, NULL);
+		AG_MenuAction(pitem, _("Undo"), NULL, NULL, NULL);
+		AG_MenuAction(pitem, _("Redo"), NULL, NULL, NULL);
 	}
 	
 	pitem = AG_MenuAddItem(menu, _("View"));
 	{
-		AG_MenuAction(pitem, _("Default"), -1,
+		AG_MenuAction(pitem, _("Default"), sgIconCamera.s,
 		    SetViewCamera, "%p,%s", sgv, "Camera0");
-		AG_MenuAction(pitem, _("Front view"), -1,
+		AG_MenuAction(pitem, _("Front view"), sgIconCamera.s,
 		    SetViewCamera, "%p,%s", sgv, "CameraFront");
-		AG_MenuAction(pitem, _("Top view"), -1,
+		AG_MenuAction(pitem, _("Top view"), sgIconCamera.s,
 		    SetViewCamera, "%p,%s", sgv, "CameraTop");
-		AG_MenuAction(pitem, _("Left view"), -1,
+		AG_MenuAction(pitem, _("Left view"), sgIconCamera.s,
 		    SetViewCamera, "%p,%s", sgv, "CameraLeft");
 		AG_MenuSeparator(pitem);
-		AG_MenuAction(pitem, _("Camera settings..."), -1,
+		AG_MenuAction(pitem, _("Camera settings..."), agIconGear.s,
 		    ShowCameraSettings, "%p", sgv);
-		AG_MenuAction(pitem, _("Light0 settings..."), -1,
+		AG_MenuAction(pitem, _("Light0 settings..."), sgIconLighting.s,
 		    ShowLightSettings, "%p,%s", sgv, "Light0");
-		AG_MenuAction(pitem, _("Light1 settings..."), -1,
+		AG_MenuAction(pitem, _("Light1 settings..."), sgIconLighting.s,
 		    ShowLightSettings, "%p,%s", sgv, "Light1");
 	}
 	
-	pane = AG_HPaneNew(win, AG_HPANE_EXPAND);
-	div = AG_HPaneAddDiv(pane,
-	    AG_BOX_VERT, AG_BOX_VFILL,
-	    AG_BOX_HORIZ, AG_BOX_EXPAND);
+	hPane = AG_PaneNewHoriz(win, AG_PANE_EXPAND);
+	AG_PaneSetDivisionPacking(hPane, 1, AG_BOX_HORIZ);
 	{
 		AG_Notebook *nb;
 		AG_NotebookTab *ntab;
 		AG_Tlist *tl;
 		AG_Box *box;
 
-		nb = AG_NotebookNew(div->box1, AG_NOTEBOOK_EXPAND);
+		nb = AG_NotebookNew(hPane->div[0], AG_NOTEBOOK_EXPAND);
 
 		ntab = AG_NotebookAddTab(nb, _("Features"), AG_BOX_VERT);
 		{
@@ -322,19 +319,18 @@ CAD_PartEdit(void *obj)
 			AGWIDGET(tl)->flags &= ~(AG_WIDGET_FOCUSABLE);
 		}
 
-		box = AG_BoxNew(div->box2, AG_BOX_VERT, AG_BOX_EXPAND);
+		box = AG_BoxNew(hPane->div[1], AG_BOX_VERT, AG_BOX_EXPAND);
 		{
 			AG_ObjectAttach(box, sgv);
 			AG_WidgetFocus(sgv);
 		}
-		AG_ObjectAttach(div->box2, toolbar);
+		AG_ObjectAttach(hPane->div[1], toolbar);
 	}
 	
-	AG_WindowScale(win, -1, -1);
 	AG_WindowSetGeometry(win,
 	    agView->w/16, agView->h/16,
 	    7*agView->w/8, 7*agView->h/8);
-	
+
 	return (win);
 }
 

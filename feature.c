@@ -51,7 +51,7 @@ CAD_FeatureInit(void *obj, const char *name)
 }
 
 int
-CAD_FeatureLoad(void *obj, AG_Netbuf *buf)
+CAD_FeatureLoad(void *obj, AG_DataSource *buf)
 {
 	CAD_Feature *feature = obj;
 
@@ -64,7 +64,7 @@ CAD_FeatureLoad(void *obj, AG_Netbuf *buf)
 }
 
 int
-CAD_FeatureSave(void *obj, AG_Netbuf *buf)
+CAD_FeatureSave(void *obj, AG_DataSource *buf)
 {
 	CAD_Feature *feature = obj;
 

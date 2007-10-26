@@ -19,8 +19,8 @@ void	  CAD_DummyInit(void *, const char *);
 void	  CAD_DummyReinit(void *);
 void	  CAD_DummyDestroy(void *);
 void	 *CAD_DummyEdit(void *);
-int	  CAD_DummyLoad(void *, AG_Netbuf *);
-int	  CAD_DummySave(void *, AG_Netbuf *);
+int	  CAD_DummyLoad(void *, AG_DataSource *);
+int	  CAD_DummySave(void *, AG_DataSource *);
 __END_DECLS
 
 #include "close_code.h"

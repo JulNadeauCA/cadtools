@@ -14,8 +14,8 @@ typedef struct cad_extruded_boss {
 
 __BEGIN_DECLS
 void	  CAD_ExtrudedBossInit(void *, const char *);
-int	  CAD_ExtrudedBossLoad(void *, AG_Netbuf *);
-int	  CAD_ExtrudedBossSave(void *, AG_Netbuf *);
+int	  CAD_ExtrudedBossLoad(void *, AG_DataSource *);
+int	  CAD_ExtrudedBossSave(void *, AG_DataSource *);
 __END_DECLS
 
 #include "close_code.h"

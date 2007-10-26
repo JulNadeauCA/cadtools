@@ -69,7 +69,7 @@ CAM_ProgramDestroy(void *obj)
 }
 
 int
-CAM_ProgramLoad(void *obj, AG_Netbuf *buf)
+CAM_ProgramLoad(void *obj, AG_DataSource *buf)
 {
 	CAM_Program *prog = obj;
 
@@ -81,7 +81,7 @@ CAM_ProgramLoad(void *obj, AG_Netbuf *buf)
 }
 
 int
-CAM_ProgramSave(void *obj, AG_Netbuf *buf)
+CAM_ProgramSave(void *obj, AG_DataSource *buf)
 {
 	CAM_Program *prog = obj;
 

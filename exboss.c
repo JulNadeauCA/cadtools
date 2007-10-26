@@ -51,7 +51,7 @@ CAD_ExtrudedBossInit(void *obj, const char *name)
 }
 
 int
-CAD_ExtrudedBossLoad(void *obj, AG_Netbuf *buf)
+CAD_ExtrudedBossLoad(void *obj, AG_DataSource *buf)
 {
 	CAD_ExtrudedBoss *exboss = obj;
 
@@ -64,7 +64,7 @@ CAD_ExtrudedBossLoad(void *obj, AG_Netbuf *buf)
 }
 
 int
-CAD_ExtrudedBossSave(void *obj, AG_Netbuf *buf)
+CAD_ExtrudedBossSave(void *obj, AG_DataSource *buf)
 {
 	CAD_ExtrudedBoss *exboss = obj;
 

@@ -72,7 +72,7 @@ CAD_DummyDestroy(void *obj)
 }
 
 int
-CAD_DummyLoad(void *obj, AG_Netbuf *buf)
+CAD_DummyLoad(void *obj, AG_DataSource *buf)
 {
 	CAD_Dummy *dummy = obj;
 
@@ -85,7 +85,7 @@ CAD_DummyLoad(void *obj, AG_Netbuf *buf)
 }
 
 int
-CAD_DummySave(void *obj, AG_Netbuf *buf)
+CAD_DummySave(void *obj, AG_DataSource *buf)
 {
 	CAD_Dummy *dummy = obj;
 

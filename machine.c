@@ -228,7 +228,7 @@ CAM_MachineDestroy(void *obj)
 }
 
 int
-CAM_MachineLoad(void *obj, AG_Netbuf *buf)
+CAM_MachineLoad(void *obj, AG_DataSource *buf)
 {
 	CAM_Machine *ma = obj;
 
@@ -245,7 +245,7 @@ CAM_MachineLoad(void *obj, AG_Netbuf *buf)
 }
 
 int
-CAM_MachineSave(void *obj, AG_Netbuf *buf)
+CAM_MachineSave(void *obj, AG_DataSource *buf)
 {
 	CAM_Machine *ma = obj;
 
@@ -373,23 +373,21 @@ CAM_MachineEdit(void *obj)
 	menu = AG_MenuNew(win, AG_MENU_HFILL);
 	pitem = AG_MenuAddItem(menu, _("File"));
 	{
-		AG_ObjMgrGenericMenu(pitem, ma);
-		AG_MenuSeparator(pitem);
-		AG_MenuActionKb(pitem, _("Close"), CLOSE_ICON,
+		AG_MenuActionKb(pitem, _("Close"), agIconClose.s,
 		    SDLK_w, KMOD_CTRL, AGWINCLOSE(win));
 	}
 	pitem = AG_MenuAddItem(menu, _("Edit"));
 	{
-		AG_MenuAction(pitem, _("Undo"), -1, NULL, NULL);
-		AG_MenuAction(pitem, _("Redo"), -1, NULL, NULL);
+		AG_MenuAction(pitem, _("Undo"), NULL, NULL, NULL);
+		AG_MenuAction(pitem, _("Redo"), NULL, NULL, NULL);
 	}
 	pitem = AG_MenuAddItem(menu, _("Model View"));
 	{
-		AG_MenuAction(pitem, _("Default"), -1,
+		AG_MenuAction(pitem, _("Default"), sgIconCamera.s,
 		    SetViewCamera, "%p,%s", sgv, "Camera0");
-		AG_MenuAction(pitem, _("Light0 settings..."), -1,
+		AG_MenuAction(pitem, _("Light0 settings..."), sgIconLighting.s,
 		    ShowLightSettings, "%p,%s", sgv, "Light0");
-		AG_MenuAction(pitem, _("Light1 settings..."), -1,
+		AG_MenuAction(pitem, _("Light1 settings..."), sgIconLighting.s,
 		    ShowLightSettings, "%p,%s", sgv, "Light1");
 	}
 	
@@ -412,7 +410,7 @@ CAM_MachineEdit(void *obj)
 
 		AG_SeparatorNewHoriz(ntab);
 
-		btn = AG_ButtonAct(ntab, AG_BUTTON_HFILL|AG_BUTTON_STICKY,
+		btn = AG_ButtonNewFn(ntab, AG_BUTTON_HFILL|AG_BUTTON_STICKY,
 		    _("Enable machine"), EnableMachine, "%p", ma);
 		AG_WidgetBindFlag32(btn, "state", &ma->flags,
 		    CAM_MACHINE_ENABLED);

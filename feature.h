@@ -18,8 +18,8 @@ typedef struct cad_feature {
 
 __BEGIN_DECLS
 void	  CAD_FeatureInit(void *, const char *);
-int	  CAD_FeatureLoad(void *, AG_Netbuf *);
-int	  CAD_FeatureSave(void *, AG_Netbuf *);
+int	  CAD_FeatureLoad(void *, AG_DataSource *);
+int	  CAD_FeatureSave(void *, AG_DataSource *);
 __END_DECLS
 
 #include "close_code.h"

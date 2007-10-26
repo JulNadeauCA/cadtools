@@ -25,8 +25,8 @@ void	  CAD_PartInit(void *, const char *);
 void	  CAD_PartReinit(void *);
 void	  CAD_PartDestroy(void *);
 void	 *CAD_PartEdit(void *);
-int	  CAD_PartLoad(void *, AG_Netbuf *);
-int	  CAD_PartSave(void *, AG_Netbuf *);
+int	  CAD_PartLoad(void *, AG_DataSource *);
+int	  CAD_PartSave(void *, AG_DataSource *);
 void	  CAD_PartDraw(void *);
 __END_DECLS
 

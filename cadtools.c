@@ -25,6 +25,7 @@
 
 #include <agar/core.h>
 #include <agar/gui.h>
+#include <agar/dev.h>
 
 #include <string.h>
 #include <unistd.h>
@@ -38,9 +39,9 @@ RegisterClasses(void)
 	extern const AG_ObjectOps camProgramOps;
 	extern const AG_ObjectOps cadPartOps;
 
-	AG_RegisterType(&camMachineOps, OBJ_ICON);
-	AG_RegisterType(&camProgramOps, OBJ_ICON);
-	AG_RegisterType(&cadPartOps, OBJ_ICON);
+	AG_RegisterClass(&camMachineOps);
+	AG_RegisterClass(&camProgramOps);
+	AG_RegisterClass(&cadPartOps);
 }
 
 int
@@ -49,11 +50,10 @@ main(int argc, char *argv[])
 	int c, i, fps = -1;
 	char *s;
 
-	if (AG_InitCore("cadtools", 0) == -1) {
+	if (AG_InitCore("cadtools", AG_CORE_VERBOSE) == -1) {
 		fprintf(stderr, "%s\n", AG_GetError());
 		return (1);
 	}
-
 	while ((c = getopt(argc, argv, "?vfFbBt:T:r:")) != -1) {
 		extern char *optarg;
 
@@ -91,28 +91,24 @@ main(int argc, char *argv[])
 			exit(0);
 		}
 	}
-
-	if (AG_InitVideo(896,704,32,AG_VIDEO_OPENGL|AG_VIDEO_RESIZABLE) == -1 ||
-	    AG_InitInput(0) == -1 ||
-	    SG_InitEngine() == -1 ||
-	    SK_InitEngine() == -1) {
+	if (AG_InitVideo(896,704,32,AG_VIDEO_OPENGL|AG_VIDEO_RESIZABLE) == -1) {
 		fprintf(stderr, "%s\n", AG_GetError());
 		return (-1);
 	}
-	AG_InitConfigWin(0);
+	AG_InitInput(0);
+	SG_InitEngine();
+	SK_InitEngine();
 	AG_SetRefreshRate(fps);
 	AG_BindGlobalKey(SDLK_ESCAPE, KMOD_NONE, AG_Quit);
-	AG_BindGlobalKey(SDLK_F1, KMOD_NONE, AG_ShowSettings);
 	AG_BindGlobalKey(SDLK_F8, KMOD_NONE, AG_ViewCapture);
-	AG_ObjectSavePromptOnExit(1);
 
 	/* Reload the previous state. */
 	RegisterClasses();
 	if (AG_ObjectLoad(agWorld) == -1) {
 		AG_ObjectSave(agWorld);		/* Assume initial run */
 	}
-	AG_ObjMgrInit();
-	AG_WindowShow(AG_ObjMgrWindow());
+	DEV_InitSubsystem(0);
+	DEV_Browser();
 
 	AG_EventLoop();
 	AG_Destroy();
