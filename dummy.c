@@ -76,8 +76,7 @@ CAD_DummyLoad(void *obj, AG_DataSource *buf)
 {
 	CAD_Dummy *dummy = obj;
 
-	if (AG_ReadVersion(buf, cadDummyOps.type, &cadDummyOps.ver, NULL)
-	    != 0) {
+	if (AG_ReadObjectVersion(buf, dummy, NULL) != 0) {
 		return (-1);
 	}
 	dummy->flags = (Uint)AG_ReadUint32(buf);

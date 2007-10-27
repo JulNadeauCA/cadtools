@@ -55,8 +55,7 @@ CAD_ExtrudedBossLoad(void *obj, AG_DataSource *buf)
 {
 	CAD_ExtrudedBoss *exboss = obj;
 
-	if (AG_ReadVersion(buf, cadExtrudedBossOps.type,
-	    &cadExtrudedBossOps.ver, NULL) != 0) {
+	if (AG_ReadObjectVersion(buf, exboss, NULL) != 0) {
 		return (-1);
 	}
 	exboss->flags = (Uint)AG_ReadUint32(buf);

@@ -55,8 +55,7 @@ CAD_FeatureLoad(void *obj, AG_DataSource *buf)
 {
 	CAD_Feature *feature = obj;
 
-	if (AG_ReadVersion(buf, cadFeatureOps.type, &cadFeatureOps.ver, NULL)
-	    != 0) {
+	if (AG_ReadObjectVersion(buf, feature, NULL) != 0) {
 		return (-1);
 	}
 	feature->flags = (Uint)AG_ReadUint32(buf);

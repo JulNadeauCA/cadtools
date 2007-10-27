@@ -100,7 +100,7 @@ CAD_PartLoad(void *obj, AG_DataSource *buf)
 {
 	CAD_Part *part = obj;
 
-	if (AG_ReadVersion(buf, cadPartOps.type, &cadPartOps.ver, NULL) != 0) {
+	if (AG_ReadObjectVersion(buf, part, NULL) != 0) {
 		return (-1);
 	}
 	AG_CopyString(part->descr, buf, sizeof(part->descr));
