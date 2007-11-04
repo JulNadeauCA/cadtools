@@ -38,10 +38,11 @@ typedef struct cam_machine {
 } CAM_Machine;
 
 __BEGIN_DECLS
+extern const AG_ObjectOps camMachineOps;
+
 CAM_Machine	 *CAM_MachineNew(void *, const char *);
 void		  CAM_MachineInit(void *, const char *);
 void		  CAM_MachineReinit(void *);
-void		  CAM_MachineDestroy(void *);
 void		 *CAM_MachineEdit(void *);
 int		  CAM_MachineLoad(void *, AG_DataSource *);
 int		  CAM_MachineSave(void *, AG_DataSource *);

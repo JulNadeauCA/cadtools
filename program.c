@@ -31,18 +31,6 @@
 
 #include "cadtools.h"
 
-const AG_ObjectOps camProgramOps = {
-	"CAM_Program",
-	sizeof(CAM_Program),
-	{ 0,0 },
-	CAM_ProgramInit,
-	NULL,			/* reinit */
-	CAM_ProgramDestroy,
-	CAM_ProgramLoad,
-	CAM_ProgramSave,
-	CAM_ProgramEdit
-};
-
 CAM_Program *
 CAM_ProgramNew(void *parent, const char *name)
 {
@@ -63,8 +51,8 @@ CAM_ProgramInit(void *obj, const char *name)
 	prog->flags = 0;
 }
 
-void
-CAM_ProgramDestroy(void *obj)
+static void
+Destroy(void *obj)
 {
 }
 
@@ -105,3 +93,15 @@ CAM_ProgramEdit(void *obj)
 
 	return (win);
 }
+
+const AG_ObjectOps camProgramOps = {
+	"CAM_Program",
+	sizeof(CAM_Program),
+	{ 0,0 },
+	CAM_ProgramInit,
+	NULL,			/* reinit */
+	Destroy,
+	CAM_ProgramLoad,
+	CAM_ProgramSave,
+	CAM_ProgramEdit
+};

@@ -34,18 +34,6 @@
 #include "cadtools.h"
 #include "protocol.h"
 
-const AG_ObjectOps camMachineOps = {
-	"CAM_Machine",
-	sizeof(CAM_Machine),
-	{ 0,0 },
-	CAM_MachineInit,
-	NULL,			/* reinit */
-	CAM_MachineDestroy,
-	CAM_MachineLoad,
-	CAM_MachineSave,
-	CAM_MachineEdit
-};
-
 CAM_Machine *
 CAM_MachineNew(void *parent, const char *name)
 {
@@ -217,8 +205,8 @@ CAM_MachineInit(void *obj, const char *name)
 	AG_MutexInitRecursive(&ma->lock);
 }
 
-void
-CAM_MachineDestroy(void *obj)
+static void
+Destroy(void *obj)
 {
 	CAM_Machine *ma = obj;
 
@@ -520,3 +508,14 @@ fail_close:
 	return (-1);
 }
 
+const AG_ObjectOps camMachineOps = {
+	"CAM_Machine",
+	sizeof(CAM_Machine),
+	{ 0,0 },
+	CAM_MachineInit,
+	NULL,			/* reinit */
+	Destroy,
+	CAM_MachineLoad,
+	CAM_MachineSave,
+	CAM_MachineEdit
+};

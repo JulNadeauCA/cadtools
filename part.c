@@ -31,18 +31,6 @@
 
 #include "cadtools.h"
 
-const AG_ObjectOps cadPartOps = {
-	"CAD_Part",
-	sizeof(CAD_Part),
-	{ 0,0 },
-	CAD_PartInit,
-	NULL,			/* reinit */
-	CAD_PartDestroy,
-	CAD_PartLoad,
-	CAD_PartSave,
-	CAD_PartEdit
-};
-
 CAD_Part *
 CAD_PartNew(void *parent, const char *name)
 {
@@ -90,8 +78,8 @@ CAD_PartInit(void *obj, const char *name)
 	lt->Kl = 0.05;
 }
 
-void
-CAD_PartDestroy(void *obj)
+static void
+Destroy(void *obj)
 {
 }
 
@@ -334,3 +322,14 @@ CAD_PartEdit(void *obj)
 	return (win);
 }
 
+const AG_ObjectOps cadPartOps = {
+	"CAD_Part",
+	sizeof(CAD_Part),
+	{ 0,0 },
+	CAD_PartInit,
+	NULL,			/* reinit */
+	Destroy,
+	CAD_PartLoad,
+	CAD_PartSave,
+	CAD_PartEdit
+};

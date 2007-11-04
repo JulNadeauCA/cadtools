@@ -22,10 +22,11 @@ typedef struct cam_program {
 } CAM_Program;
 
 __BEGIN_DECLS
+extern const AG_ObjectOps camProgramOps;
+
 CAM_Program	*CAM_ProgramNew(void *, const char *);
 void	 	 CAM_ProgramInit(void *, const char *);
 void		 CAM_ProgramReinit(void *);
-void		 CAM_ProgramDestroy(void *);
 void		*CAM_ProgramEdit(void *);
 int		 CAM_ProgramLoad(void *, AG_DataSource *);
 int		 CAM_ProgramSave(void *, AG_DataSource *);

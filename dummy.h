@@ -14,10 +14,11 @@ typedef struct cad_dummy {
 } CAD_Dummy;
 
 __BEGIN_DECLS
+extern const AG_ObjectOps cadDummyOps;
+
 CAD_Dummy *CAD_DummyNew(void *, const char *);
 void	  CAD_DummyInit(void *, const char *);
 void	  CAD_DummyReinit(void *);
-void	  CAD_DummyDestroy(void *);
 void	 *CAD_DummyEdit(void *);
 int	  CAD_DummyLoad(void *, AG_DataSource *);
 int	  CAD_DummySave(void *, AG_DataSource *);

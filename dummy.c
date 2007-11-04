@@ -34,18 +34,6 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
-const AG_ObjectOps cadDummyOps = {
-	"CAD_Dummy",
-	sizeof(CAD_Dummy),
-	{ 0,0 },
-	CAD_DummyInit,
-	NULL,			/* reinit */
-	CAD_DummyDestroy,
-	CAD_DummyLoad,
-	CAD_DummySave,
-	CAD_DummyEdit
-};
-
 CAD_Dummy *
 CAD_DummyNew(void *parent, const char *name)
 {
@@ -66,8 +54,8 @@ CAD_DummyInit(void *obj, const char *name)
 	dummy->flags = 0;
 }
 
-void
-CAD_DummyDestroy(void *obj)
+static void
+Destroy(void *obj)
 {
 }
 
@@ -103,3 +91,15 @@ CAD_DummyEdit(void *obj)
 	AG_WindowSetCaption(win, _("Dummy: %s"), AGOBJECT(dummy)->name);
 	return (win);
 }
+
+const AG_ObjectOps cadDummyOps = {
+	"CAD_Dummy",
+	sizeof(CAD_Dummy),
+	{ 0,0 },
+	CAD_DummyInit,
+	NULL,			/* reinit */
+	Destroy,
+	CAD_DummyLoad,
+	CAD_DummySave,
+	CAD_DummyEdit
+};

@@ -20,10 +20,11 @@ typedef struct cad_part {
 } CAD_Part;
 
 __BEGIN_DECLS
-CAD_Part	 *CAD_PartNew(void *, const char *);
+extern const AG_ObjectOps cadPartOps;
+
+CAD_Part *CAD_PartNew(void *, const char *);
 void	  CAD_PartInit(void *, const char *);
 void	  CAD_PartReinit(void *);
-void	  CAD_PartDestroy(void *);
 void	 *CAD_PartEdit(void *);
 int	  CAD_PartLoad(void *, AG_DataSource *);
 int	  CAD_PartSave(void *, AG_DataSource *);
