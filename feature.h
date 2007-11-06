@@ -17,9 +17,7 @@ typedef struct cad_feature {
 } CAD_Feature;
 
 __BEGIN_DECLS
-void	  CAD_FeatureInit(void *, const char *);
-int	  CAD_FeatureLoad(void *, AG_DataSource *);
-int	  CAD_FeatureSave(void *, AG_DataSource *);
+extern const AG_ObjectOps cadFeatureOps;
 __END_DECLS
 
 #include "close_code.h"

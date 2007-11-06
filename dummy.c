@@ -39,18 +39,17 @@ CAD_DummyNew(void *parent, const char *name)
 {
 	CAD_Dummy *dummy;
 
-	dummy = Malloc(sizeof(CAD_Dummy), M_OBJECT);
-	CAD_DummyInit(dummy, name);
+	dummy = Malloc(sizeof(CAD_Dummy));
+	AG_ObjectInit(dummy, name, &cadDummyOps);
 	AG_ObjectAttach(parent, dummy);
 	return (dummy);
 }
 
-void
-CAD_DummyInit(void *obj, const char *name)
+static void
+Init(void *obj, const char *name)
 {
 	CAD_Dummy *dummy = obj;
 
-	AG_ObjectInit(dummy, name, &cadDummyOps);
 	dummy->flags = 0;
 }
 
@@ -59,8 +58,8 @@ Destroy(void *obj)
 {
 }
 
-int
-CAD_DummyLoad(void *obj, AG_DataSource *buf)
+static int
+Load(void *obj, AG_DataSource *buf)
 {
 	CAD_Dummy *dummy = obj;
 
@@ -71,8 +70,8 @@ CAD_DummyLoad(void *obj, AG_DataSource *buf)
 	return (0);
 }
 
-int
-CAD_DummySave(void *obj, AG_DataSource *buf)
+static int
+Save(void *obj, AG_DataSource *buf)
 {
 	CAD_Dummy *dummy = obj;
 
@@ -81,8 +80,8 @@ CAD_DummySave(void *obj, AG_DataSource *buf)
 	return (0);
 }
 
-void *
-CAD_DummyEdit(void *obj)
+static void *
+Edit(void *obj)
 {
 	CAD_Dummy *dummy = obj;
 	AG_Window *win;
@@ -96,10 +95,10 @@ const AG_ObjectOps cadDummyOps = {
 	"CAD_Dummy",
 	sizeof(CAD_Dummy),
 	{ 0,0 },
-	CAD_DummyInit,
+	Init,
 	NULL,			/* reinit */
 	Destroy,
-	CAD_DummyLoad,
-	CAD_DummySave,
-	CAD_DummyEdit
+	Load,
+	Save,
+	Edit
 };

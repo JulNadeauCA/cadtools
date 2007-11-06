@@ -41,12 +41,7 @@ __BEGIN_DECLS
 extern const AG_ObjectOps camMachineOps;
 
 CAM_Machine	 *CAM_MachineNew(void *, const char *);
-void		  CAM_MachineInit(void *, const char *);
-void		  CAM_MachineReinit(void *);
-void		 *CAM_MachineEdit(void *);
-int		  CAM_MachineLoad(void *, AG_DataSource *);
-int		  CAM_MachineSave(void *, AG_DataSource *);
-void		  CAM_MachineDraw(void *);
+void		  CAM_MachineLog(CAM_Machine *, const char *, ...);
 int		  CAM_MachineUploadProgram(CAM_Machine *, CAM_Program *);
 __END_DECLS
 

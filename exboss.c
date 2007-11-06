@@ -28,30 +28,16 @@
 #include "cadtools.h"
 #include "exboss.h"
 
-const AG_ObjectOps cadExtrudedBossOps = {
-	"CAD_Feature:CAD_ExtrudedBoss",
-	sizeof(CAD_ExtrudedBoss),
-	{ 0,0 },
-	CAD_ExtrudedBossInit,
-	NULL,			/* reinit */
-	NULL,			/* destroy */
-	CAD_ExtrudedBossLoad,
-	CAD_ExtrudedBossSave,
-	NULL			/* edit */
-};
-
-void
-CAD_ExtrudedBossInit(void *obj, const char *name)
+static void
+Init(void *obj, const char *name)
 {
 	CAD_ExtrudedBoss *exboss = obj;
 
-	CAD_FeatureInit(exboss, name);
-	AG_ObjectSetOps(exboss, &cadExtrudedBossOps);
 	exboss->flags = 0;
 }
 
-int
-CAD_ExtrudedBossLoad(void *obj, AG_DataSource *buf)
+static int
+Load(void *obj, AG_DataSource *buf)
 {
 	CAD_ExtrudedBoss *exboss = obj;
 
@@ -62,8 +48,8 @@ CAD_ExtrudedBossLoad(void *obj, AG_DataSource *buf)
 	return (0);
 }
 
-int
-CAD_ExtrudedBossSave(void *obj, AG_DataSource *buf)
+static int
+Save(void *obj, AG_DataSource *buf)
 {
 	CAD_ExtrudedBoss *exboss = obj;
 
@@ -71,3 +57,15 @@ CAD_ExtrudedBossSave(void *obj, AG_DataSource *buf)
 	AG_WriteUint32(buf, (Uint32)exboss->flags);
 	return (0);
 }
+
+const AG_ObjectOps cadExtrudedBossOps = {
+	"CAD_Feature:CAD_ExtrudedBoss",
+	sizeof(CAD_ExtrudedBoss),
+	{ 0,0 },
+	Init,
+	NULL,			/* reinit */
+	NULL,			/* destroy */
+	Load,
+	Save,
+	NULL			/* edit */
+};

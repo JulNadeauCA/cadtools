@@ -29,29 +29,16 @@
 #include "part.h"
 #include "feature.h"
 
-const AG_ObjectOps cadFeatureOps = {
-	"CAD_Feature",
-	sizeof(CAD_Feature),
-	{ 0,0 },
-	CAD_FeatureInit,
-	NULL,			/* reinit */
-	NULL,			/* destroy */
-	CAD_FeatureLoad,
-	CAD_FeatureSave,
-	NULL,			/* edit */
-};
-
-void
-CAD_FeatureInit(void *obj, const char *name)
+static void
+Init(void *obj, const char *name)
 {
 	CAD_Feature *feature = obj;
 
-	AG_ObjectInit(feature, name, &cadFeatureOps);
 	feature->flags = 0;
 }
 
-int
-CAD_FeatureLoad(void *obj, AG_DataSource *buf)
+static int
+Load(void *obj, AG_DataSource *buf)
 {
 	CAD_Feature *feature = obj;
 
@@ -62,8 +49,8 @@ CAD_FeatureLoad(void *obj, AG_DataSource *buf)
 	return (0);
 }
 
-int
-CAD_FeatureSave(void *obj, AG_DataSource *buf)
+static int
+Save(void *obj, AG_DataSource *buf)
 {
 	CAD_Feature *feature = obj;
 
@@ -71,3 +58,15 @@ CAD_FeatureSave(void *obj, AG_DataSource *buf)
 	AG_WriteUint32(buf, (Uint32)feature->flags);
 	return (0);
 }
+
+const AG_ObjectOps cadFeatureOps = {
+	"CAD_Feature",
+	sizeof(CAD_Feature),
+	{ 0,0 },
+	Init,
+	NULL,			/* reinit */
+	NULL,			/* destroy */
+	Load,
+	Save,
+	NULL,			/* edit */
+};

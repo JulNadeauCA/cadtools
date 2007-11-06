@@ -36,21 +36,20 @@ CAD_PartNew(void *parent, const char *name)
 {
 	CAD_Part *part;
 
-	part = Malloc(sizeof(CAD_Part), M_OBJECT);
-	CAD_PartInit(part, name);
+	part = Malloc(sizeof(CAD_Part));
+	AG_ObjectInit(part, name, &cadPartOps);
 	AG_ObjectAttach(parent, part);
 	return (part);
 }
 
-void
-CAD_PartInit(void *obj, const char *name)
+static void
+Init(void *obj, const char *name)
 {
 	CAD_Part *part = obj;
 	SG_Real i;
 	SG_Light *lt;
 	SG_Camera *cam;
 
-	AG_ObjectInit(part, name, &cadPartOps);
 	part->descr[0] = '\0';
 	part->flags = 0;
 	part->sg = SG_New(part, "Rendering");
@@ -83,8 +82,8 @@ Destroy(void *obj)
 {
 }
 
-int
-CAD_PartLoad(void *obj, AG_DataSource *buf)
+static int
+Load(void *obj, AG_DataSource *buf)
 {
 	CAD_Part *part = obj;
 
@@ -96,8 +95,8 @@ CAD_PartLoad(void *obj, AG_DataSource *buf)
 	return (0);
 }
 
-int
-CAD_PartSave(void *obj, AG_DataSource *buf)
+static int
+Save(void *obj, AG_DataSource *buf)
 {
 	CAD_Part *part = obj;
 
@@ -213,13 +212,13 @@ tryname:
 	if (AG_ObjectFindChild(part, name) != NULL)
 		goto tryname;
 
-	ft = Malloc(ops->size, M_OBJECT);
+	ft = Malloc(ops->size);
 	ops->init(ft, name);
 	AG_ObjectAttach(part, ft);
 }
 
-void *
-CAD_PartEdit(void *obj)
+static void *
+Edit(void *obj)
 {
 	CAD_Part *part = obj;
 	AG_Window *win;
@@ -232,10 +231,10 @@ CAD_PartEdit(void *obj)
 	win = AG_WindowNew(0);
 	AG_WindowSetCaption(win, "%s", AGOBJECT(part)->name);
 
-	toolbar = Malloc(sizeof(AG_Toolbar), M_OBJECT);
+	toolbar = Malloc(sizeof(AG_Toolbar));
 	AG_ToolbarInit(toolbar, AG_TOOLBAR_VERT, 1, 0);
 
-	sgv = Malloc(sizeof(SG_View), M_OBJECT);
+	sgv = Malloc(sizeof(SG_View));
 	SG_ViewInit(sgv, part->sg, SG_VIEW_EXPAND);
 
 	menu = AG_MenuNew(win, AG_MENU_HFILL);
@@ -326,10 +325,10 @@ const AG_ObjectOps cadPartOps = {
 	"CAD_Part",
 	sizeof(CAD_Part),
 	{ 0,0 },
-	CAD_PartInit,
+	Init,
 	NULL,			/* reinit */
 	Destroy,
-	CAD_PartLoad,
-	CAD_PartSave,
-	CAD_PartEdit
+	Load,
+	Save,
+	Edit
 };

@@ -34,18 +34,21 @@
 #include "cadtools.h"
 #include "protocol.h"
 
-CAM_Machine *
+static void *MachineThread(void *);
+static void *InactivityCheck(void *);
+
+CAM_Machine 
 CAM_MachineNew(void *parent, const char *name)
 {
 	CAM_Machine *ma;
 
-	ma = Malloc(sizeof(CAM_Machine), M_OBJECT);
-	CAM_MachineInit(ma, name);
+	ma = Malloc(sizeof(CAM_Machine));
+	AG_ObjectInit(ma, name, &camMachineOps);
 	AG_ObjectAttach(parent, ma);
 	return (ma);
 }
 
-static void
+void
 CAM_MachineLog(CAM_Machine *ma, const char *fmt, ...)
 {
 	char msg[1024];
@@ -60,8 +63,120 @@ CAM_MachineLog(CAM_Machine *ma, const char *fmt, ...)
 	AG_ConsoleMsg(ma->cons, "%s", msg);
 }
 
+static void
+Attached(AG_Event *event)
+{
+	CAM_Machine *ma = AG_SELF();
+	SG_Light *lt;
+
+	AG_ThreadCreate(&ma->thNet, NULL, CAM_MachineThread, ma);
+	AG_ThreadCreate(&ma->thInact, NULL, CAM_InactivityCheck, ma);
+	
+	ma->model = SG_New(ma, "Geometric model");
+	{
+		lt = SG_LightNew(ma->model->root, "Light0");
+		SG_Translate3(lt, -6.0, 6.0, -6.0);
+		lt->Kc = 0.5;
+		lt->Kl = 0.05;
+		lt = SG_LightNew(ma->model->root, "Light1");
+		SG_Translate3(lt, 6.0, 6.0, 6.0);
+		lt->Kc = 0.25;
+		lt->Kl = 0.05;
+	}
+	AG_ObjectPageIn(ma->model);
+}
+
+static void
+Detached(AG_Event *event)
+{
+	CAM_Machine *ma = AG_SELF();
+	int i;
+
+	AG_MutexLock(&ma->lock);
+	ma->flags |= CAM_MACHINE_DETACHING;
+	AG_MutexUnlock(&ma->lock);
+	for (i = 0; i < 10; i++) {
+		AG_MutexLock(&ma->lock);
+		if (ma->flags & CAM_MACHINE_DETACHED) {
+			AG_MutexUnlock(&ma->lock);
+			goto out;
+		}
+		AG_MutexUnlock(&ma->lock);
+		SDL_Delay(1000);
+	}
+	if (i == 10) {
+		fprintf(stderr, "%s: threads are not responding!\n",
+		    AGOBJECT(ma)->name);
+	}
+out:
+	AG_ObjectPageOut(ma->model);
+	return;
+}
+
+static void
+Init(void *obj, const char *name)
+{
+	CAM_Machine *ma = obj;
+
+	ma->flags = 0;
+	ma->descr[0] = '\0';
+	ma->host[0] = '\0';
+	ma->user[0] = '\0';
+	ma->pass[0] = '\0';
+	strlcpy(ma->port, _PROTO_MACHCTL_PORT, sizeof(ma->port));
+	ma->cons = NULL;
+	ma->model = NULL;
+	TAILQ_INIT(&ma->upload);
+	NC_Init(&ma->sess, _PROTO_MACHCTL_NAME, _PROTO_MACHCTL_VER);
+	AG_SetEvent(ma, "attached", Attached, NULL);
+	AG_SetEvent(ma, "detached", Detached, NULL);
+	AG_MutexInitRecursive(&ma->lock);
+}
+
+static void
+Destroy(void *obj)
+{
+	CAM_Machine *ma = obj;
+
+	AG_PostEvent(NULL, ma, "detached", NULL);
+	NC_Destroy(&ma->sess);
+	AG_MutexDestroy(&ma->lock);
+}
+
+static int
+Load(void *obj, AG_DataSource *buf)
+{
+	CAM_Machine *ma = obj;
+
+	if (AG_ReadObjectVersion(buf, ma, NULL) != 0) {
+		return (-1);
+	}
+	AG_CopyString(ma->descr, buf, sizeof(ma->descr));
+	ma->flags = AG_ReadUint32(buf);
+	AG_CopyString(ma->host, buf, sizeof(ma->host));
+	AG_CopyString(ma->port, buf, sizeof(ma->port));
+	AG_CopyString(ma->user, buf, sizeof(ma->user));
+	AG_CopyString(ma->pass, buf, sizeof(ma->pass));
+	return (0);
+}
+
+static int
+Save(void *obj, AG_DataSource *buf)
+{
+	CAM_Machine *ma = obj;
+
+	AG_WriteObjectVersion(buf, ma);
+	AG_WriteString(buf, ma->descr);
+	AG_WriteUint32(buf, ma->flags);
+	AG_WriteString(buf, ma->host);
+	AG_WriteString(buf, ma->port);
+	AG_WriteString(buf, ma->user);
+	AG_WriteString(buf, ma->pass);
+	return (0);
+}
+
 static void *
-CAM_MachineThread(void *obj)
+MachineThread(void *obj)
 {
 	CAM_Machine *ma = obj;
 	NC_Result *res;
@@ -102,7 +217,7 @@ wait:
 }
 
 static void *
-CAM_InactivityCheck(void *obj)
+InactivityCheck(void *obj)
 {
 	CAM_Machine *ma = obj;
 
@@ -132,119 +247,6 @@ skip:
 		AG_MutexUnlock(&ma->lock);
 		SDL_Delay(1000);
 	}
-}
-
-static void
-CAM_MachineAttached(AG_Event *event)
-{
-	CAM_Machine *ma = AG_SELF();
-	SG_Light *lt;
-
-	AG_ThreadCreate(&ma->thNet, NULL, CAM_MachineThread, ma);
-	AG_ThreadCreate(&ma->thInact, NULL, CAM_InactivityCheck, ma);
-	
-	ma->model = SG_New(ma, "Geometric model");
-	{
-		lt = SG_LightNew(ma->model->root, "Light0");
-		SG_Translate3(lt, -6.0, 6.0, -6.0);
-		lt->Kc = 0.5;
-		lt->Kl = 0.05;
-		lt = SG_LightNew(ma->model->root, "Light1");
-		SG_Translate3(lt, 6.0, 6.0, 6.0);
-		lt->Kc = 0.25;
-		lt->Kl = 0.05;
-	}
-	AG_ObjectPageIn(ma->model);
-}
-
-static void
-CAM_MachineDetached(AG_Event *event)
-{
-	CAM_Machine *ma = AG_SELF();
-	int i;
-
-	AG_MutexLock(&ma->lock);
-	ma->flags |= CAM_MACHINE_DETACHING;
-	AG_MutexUnlock(&ma->lock);
-	for (i = 0; i < 10; i++) {
-		AG_MutexLock(&ma->lock);
-		if (ma->flags & CAM_MACHINE_DETACHED) {
-			AG_MutexUnlock(&ma->lock);
-			goto out;
-		}
-		AG_MutexUnlock(&ma->lock);
-		SDL_Delay(1000);
-	}
-	if (i == 10) {
-		fprintf(stderr, "%s: threads are not responding!\n",
-		    AGOBJECT(ma)->name);
-	}
-out:
-	AG_ObjectPageOut(ma->model);
-	return;
-}
-
-void
-CAM_MachineInit(void *obj, const char *name)
-{
-	CAM_Machine *ma = obj;
-
-	AG_ObjectInit(ma, name, &camMachineOps);
-	ma->flags = 0;
-	ma->descr[0] = '\0';
-	ma->host[0] = '\0';
-	ma->user[0] = '\0';
-	ma->pass[0] = '\0';
-	strlcpy(ma->port, _PROTO_MACHCTL_PORT, sizeof(ma->port));
-	ma->cons = NULL;
-	ma->model = NULL;
-	TAILQ_INIT(&ma->upload);
-	NC_Init(&ma->sess, _PROTO_MACHCTL_NAME, _PROTO_MACHCTL_VER);
-	AG_SetEvent(ma, "attached", CAM_MachineAttached, NULL);
-	AG_SetEvent(ma, "detached", CAM_MachineDetached, NULL);
-	AG_MutexInitRecursive(&ma->lock);
-}
-
-static void
-Destroy(void *obj)
-{
-	CAM_Machine *ma = obj;
-
-	AG_PostEvent(NULL, ma, "detached", NULL);
-	NC_Destroy(&ma->sess);
-	AG_MutexDestroy(&ma->lock);
-}
-
-int
-CAM_MachineLoad(void *obj, AG_DataSource *buf)
-{
-	CAM_Machine *ma = obj;
-
-	if (AG_ReadObjectVersion(buf, ma, NULL) != 0) {
-		return (-1);
-	}
-	AG_CopyString(ma->descr, buf, sizeof(ma->descr));
-	ma->flags = AG_ReadUint32(buf);
-	AG_CopyString(ma->host, buf, sizeof(ma->host));
-	AG_CopyString(ma->port, buf, sizeof(ma->port));
-	AG_CopyString(ma->user, buf, sizeof(ma->user));
-	AG_CopyString(ma->pass, buf, sizeof(ma->pass));
-	return (0);
-}
-
-int
-CAM_MachineSave(void *obj, AG_DataSource *buf)
-{
-	CAM_Machine *ma = obj;
-
-	AG_WriteObjectVersion(buf, ma);
-	AG_WriteString(buf, ma->descr);
-	AG_WriteUint32(buf, ma->flags);
-	AG_WriteString(buf, ma->host);
-	AG_WriteString(buf, ma->port);
-	AG_WriteString(buf, ma->user);
-	AG_WriteString(buf, ma->pass);
-	return (0);
 }
 
 static void
@@ -334,8 +336,8 @@ EnableMachine(AG_Event *event)
 	AG_MutexUnlock(&ma->lock);
 }
 
-void *
-CAM_MachineEdit(void *obj)
+static void *
+Edit(void *obj)
 {
 	CAM_Machine *ma = obj;
 	AG_Window *win;
@@ -355,7 +357,7 @@ CAM_MachineEdit(void *obj)
 	win = AG_WindowNew(0);
 	AG_WindowSetCaption(win, "%s", AGOBJECT(ma)->name);
 
-	sgv = Malloc(sizeof(SG_View), M_OBJECT);
+	sgv = Malloc(sizeof(SG_View));
 	SG_ViewInit(sgv, ma->model, SG_VIEW_EXPAND);
 
 	menu = AG_MenuNew(win, AG_MENU_HFILL);
@@ -512,10 +514,10 @@ const AG_ObjectOps camMachineOps = {
 	"CAM_Machine",
 	sizeof(CAM_Machine),
 	{ 0,0 },
-	CAM_MachineInit,
+	Init,
 	NULL,			/* reinit */
 	Destroy,
-	CAM_MachineLoad,
-	CAM_MachineSave,
-	CAM_MachineEdit
+	Load,
+	Save,
+	Edit
 };

@@ -23,13 +23,7 @@ typedef struct cam_program {
 
 __BEGIN_DECLS
 extern const AG_ObjectOps camProgramOps;
-
-CAM_Program	*CAM_ProgramNew(void *, const char *);
-void	 	 CAM_ProgramInit(void *, const char *);
-void		 CAM_ProgramReinit(void *);
-void		*CAM_ProgramEdit(void *);
-int		 CAM_ProgramLoad(void *, AG_DataSource *);
-int		 CAM_ProgramSave(void *, AG_DataSource *);
+CAM_Program *CAM_ProgramNew(void *, const char *);
 __END_DECLS
 
 #include "close_code.h"

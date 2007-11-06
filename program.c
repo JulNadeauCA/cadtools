@@ -36,18 +36,17 @@ CAM_ProgramNew(void *parent, const char *name)
 {
 	CAM_Program *prog;
 
-	prog = Malloc(sizeof(CAM_Program), M_OBJECT);
-	CAM_ProgramInit(prog, name);
+	prog = Malloc(sizeof(CAM_Program));
+	AG_ObjectInit(prog, name, &camProgramOps);
 	AG_ObjectAttach(parent, prog);
 	return (prog);
 }
 
-void
-CAM_ProgramInit(void *obj, const char *name)
+static void
+Init(void *obj, const char *name)
 {
 	CAM_Program *prog = obj;
 
-	AG_ObjectInit(prog, name, &camProgramOps);
 	prog->flags = 0;
 }
 
@@ -56,8 +55,8 @@ Destroy(void *obj)
 {
 }
 
-int
-CAM_ProgramLoad(void *obj, AG_DataSource *buf)
+static int
+Load(void *obj, AG_DataSource *buf)
 {
 	CAM_Program *prog = obj;
 
@@ -68,8 +67,8 @@ CAM_ProgramLoad(void *obj, AG_DataSource *buf)
 	return (0);
 }
 
-int
-CAM_ProgramSave(void *obj, AG_DataSource *buf)
+static int
+Save(void *obj, AG_DataSource *buf)
 {
 	CAM_Program *prog = obj;
 
@@ -78,8 +77,8 @@ CAM_ProgramSave(void *obj, AG_DataSource *buf)
 	return (0);
 }
 
-void *
-CAM_ProgramEdit(void *obj)
+static void *
+Edit(void *obj)
 {
 	CAM_Program *prog = obj;
 	AG_Window *win;
@@ -98,10 +97,10 @@ const AG_ObjectOps camProgramOps = {
 	"CAM_Program",
 	sizeof(CAM_Program),
 	{ 0,0 },
-	CAM_ProgramInit,
+	Init,
 	NULL,			/* reinit */
 	Destroy,
-	CAM_ProgramLoad,
-	CAM_ProgramSave,
-	CAM_ProgramEdit
+	Load,
+	Save,
+	Edit
 };
