@@ -37,13 +37,14 @@
 static void *MachineThread(void *);
 static void *InactivityCheck(void *);
 
-CAM_Machine 
+CAM_Machine *
 CAM_MachineNew(void *parent, const char *name)
 {
 	CAM_Machine *ma;
 
 	ma = Malloc(sizeof(CAM_Machine));
-	AG_ObjectInit(ma, name, &camMachineOps);
+	AG_ObjectInit(ma, &camMachineOps);
+	AG_ObjectSetName(ma, "%s", name);
 	AG_ObjectAttach(parent, ma);
 	return (ma);
 }
@@ -69,8 +70,8 @@ Attached(AG_Event *event)
 	CAM_Machine *ma = AG_SELF();
 	SG_Light *lt;
 
-	AG_ThreadCreate(&ma->thNet, NULL, CAM_MachineThread, ma);
-	AG_ThreadCreate(&ma->thInact, NULL, CAM_InactivityCheck, ma);
+	AG_ThreadCreate(&ma->thNet, NULL, MachineThread, ma);
+	AG_ThreadCreate(&ma->thInact, NULL, InactivityCheck, ma);
 	
 	ma->model = SG_New(ma, "Geometric model");
 	{
@@ -114,7 +115,7 @@ out:
 }
 
 static void
-Init(void *obj, const char *name)
+Init(void *obj)
 {
 	CAM_Machine *ma = obj;
 
@@ -357,8 +358,7 @@ Edit(void *obj)
 	win = AG_WindowNew(0);
 	AG_WindowSetCaption(win, "%s", AGOBJECT(ma)->name);
 
-	sgv = Malloc(sizeof(SG_View));
-	SG_ViewInit(sgv, ma->model, SG_VIEW_EXPAND);
+	sgv = SG_ViewNew(NULL, ma->model, SG_VIEW_EXPAND);
 
 	menu = AG_MenuNew(win, AG_MENU_HFILL);
 	pitem = AG_MenuAddItem(menu, _("File"));
@@ -435,6 +435,8 @@ Edit(void *obj)
 		AG_ObjectAttach(ntab, sgv);
 		AG_WidgetFocus(sgv);
 	}
+
+	AG_WidgetFocus(sgv);
 	return (win);
 }
 

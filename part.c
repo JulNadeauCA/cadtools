@@ -37,13 +37,14 @@ CAD_PartNew(void *parent, const char *name)
 	CAD_Part *part;
 
 	part = Malloc(sizeof(CAD_Part));
-	AG_ObjectInit(part, name, &cadPartOps);
+	AG_ObjectInit(part, &cadPartOps);
+	AG_ObjectSetName(part, "%s", name);
 	AG_ObjectAttach(parent, part);
 	return (part);
 }
 
 static void
-Init(void *obj, const char *name)
+Init(void *obj)
 {
 	CAD_Part *part = obj;
 	SG_Real i;
@@ -213,7 +214,8 @@ tryname:
 		goto tryname;
 
 	ft = Malloc(ops->size);
-	ops->init(ft, name);
+	AG_ObjectInit(ft, &cadFeatureOps);
+	AG_ObjectSetName(ft, "%s", name);
 	AG_ObjectAttach(part, ft);
 }
 
@@ -231,11 +233,8 @@ Edit(void *obj)
 	win = AG_WindowNew(0);
 	AG_WindowSetCaption(win, "%s", AGOBJECT(part)->name);
 
-	toolbar = Malloc(sizeof(AG_Toolbar));
-	AG_ToolbarInit(toolbar, AG_TOOLBAR_VERT, 1, 0);
-
-	sgv = Malloc(sizeof(SG_View));
-	SG_ViewInit(sgv, part->sg, SG_VIEW_EXPAND);
+	toolbar = AG_ToolbarNew(NULL, AG_TOOLBAR_VERT, 1, 0);
+	sgv = SG_ViewNew(NULL, part->sg, SG_VIEW_EXPAND);
 
 	menu = AG_MenuNew(win, AG_MENU_HFILL);
 	pitem = AG_MenuAddItem(menu, _("File"));
