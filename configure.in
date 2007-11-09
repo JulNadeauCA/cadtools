@@ -4,8 +4,8 @@
 REGISTER("--enable-static",	"Produce a static binary [default: no]")
 REGISTER("--enable-warnings",	"Enable compiler warnings [default: no]")
 
-HDEFINE(VERSION, "\"06112007\"")
-HDEFINE(RELEASE, "\"Worlds of Glass\"")
+HDEFINE(VERSION, "06112007")
+HDEFINE(RELEASE, "Worlds of Glass")
 
 CHECK(cc)
 CHECK(agar, 1.3)
