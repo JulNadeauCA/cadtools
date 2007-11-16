@@ -38,7 +38,7 @@ typedef struct cam_machine {
 } CAM_Machine;
 
 __BEGIN_DECLS
-extern const AG_ObjectOps camMachineOps;
+extern const AG_ObjectClass camMachineClass;
 
 CAM_Machine	 *CAM_MachineNew(void *, const char *);
 void		  CAM_MachineLog(CAM_Machine *, const char *, ...);

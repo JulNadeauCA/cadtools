@@ -40,7 +40,7 @@ CAD_DummyNew(void *parent, const char *name)
 	CAD_Dummy *dummy;
 
 	dummy = Malloc(sizeof(CAD_Dummy));
-	AG_ObjectInit(dummy, name, &cadDummyOps);
+	AG_ObjectInit(dummy, name, &cadDummyClass);
 	AG_ObjectAttach(parent, dummy);
 	return (dummy);
 }
@@ -87,7 +87,7 @@ Edit(void *obj)
 	return (win);
 }
 
-const AG_ObjectOps cadDummyOps = {
+const AG_ObjectClass cadDummyClass = {
 	"CAD_Dummy",
 	sizeof(CAD_Dummy),
 	{ 0,0 },

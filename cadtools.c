@@ -35,9 +35,9 @@
 static void
 RegisterClasses(void)
 {
-	AG_RegisterClass(&camMachineOps);
-	AG_RegisterClass(&camProgramOps);
-	AG_RegisterClass(&cadPartOps);
+	AG_RegisterClass(&camMachineClass);
+	AG_RegisterClass(&camProgramClass);
+	AG_RegisterClass(&cadPartClass);
 }
 
 int

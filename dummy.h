@@ -14,7 +14,7 @@ typedef struct cad_dummy {
 } CAD_Dummy;
 
 __BEGIN_DECLS
-extern const AG_ObjectOps cadDummyOps;
+extern const AG_ObjectClass cadDummyClass;
 
 CAD_Dummy *CAD_DummyNew(void *, const char *);
 __END_DECLS

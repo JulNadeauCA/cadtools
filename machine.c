@@ -43,7 +43,7 @@ CAM_MachineNew(void *parent, const char *name)
 	CAM_Machine *ma;
 
 	ma = Malloc(sizeof(CAM_Machine));
-	AG_ObjectInit(ma, &camMachineOps);
+	AG_ObjectInit(ma, &camMachineClass);
 	AG_ObjectSetName(ma, "%s", name);
 	AG_ObjectAttach(parent, ma);
 	return (ma);
@@ -508,7 +508,7 @@ fail_close:
 	return (-1);
 }
 
-const AG_ObjectOps camMachineOps = {
+const AG_ObjectClass camMachineClass = {
 	"CAM_Machine",
 	sizeof(CAM_Machine),
 	{ 0,0 },

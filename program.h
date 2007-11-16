@@ -22,7 +22,8 @@ typedef struct cam_program {
 } CAM_Program;
 
 __BEGIN_DECLS
-extern const AG_ObjectOps camProgramOps;
+extern const AG_ObjectClass camProgramClass;
+
 CAM_Program *CAM_ProgramNew(void *, const char *);
 __END_DECLS
 

@@ -13,7 +13,7 @@ typedef struct cad_extruded_boss {
 } CAD_ExtrudedBoss;
 
 __BEGIN_DECLS
-extern const AG_ObjectOps cadExtrudedBossOps;
+extern const AG_ObjectClass cadExtrudedBossClass;
 __END_DECLS
 
 #include "close_code.h"

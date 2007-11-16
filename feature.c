@@ -55,7 +55,7 @@ Save(void *obj, AG_DataSource *buf)
 	return (0);
 }
 
-const AG_ObjectOps cadFeatureOps = {
+const AG_ObjectClass cadFeatureClass = {
 	"CAD_Feature",
 	sizeof(CAD_Feature),
 	{ 0,0 },

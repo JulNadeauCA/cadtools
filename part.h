@@ -20,7 +20,8 @@ typedef struct cad_part {
 } CAD_Part;
 
 __BEGIN_DECLS
-extern const AG_ObjectOps cadPartOps;
+extern const AG_ObjectClass cadPartClass;
+
 CAD_Part *CAD_PartNew(void *, const char *);
 __END_DECLS
 

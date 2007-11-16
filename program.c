@@ -37,7 +37,7 @@ CAM_ProgramNew(void *parent, const char *name)
 	CAM_Program *prog;
 
 	prog = Malloc(sizeof(CAM_Program));
-	AG_ObjectInit(prog, &camProgramOps);
+	AG_ObjectInit(prog, &camProgramClass);
 	AG_ObjectSetName(prog, "%s", name);
 	AG_ObjectAttach(parent, prog);
 	return (prog);
@@ -90,7 +90,7 @@ Edit(void *obj)
 	return (win);
 }
 
-const AG_ObjectOps camProgramOps = {
+const AG_ObjectClass camProgramClass = {
 	"CAM_Program",
 	sizeof(CAM_Program),
 	{ 0,0 },

@@ -54,7 +54,7 @@ Save(void *obj, AG_DataSource *buf)
 	return (0);
 }
 
-const AG_ObjectOps cadExtrudedBossOps = {
+const AG_ObjectClass cadExtrudedBossClass = {
 	"CAD_Feature:CAD_ExtrudedBoss",
 	sizeof(CAD_ExtrudedBoss),
 	{ 0,0 },

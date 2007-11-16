@@ -17,7 +17,7 @@ typedef struct cad_feature {
 } CAD_Feature;
 
 __BEGIN_DECLS
-extern const AG_ObjectOps cadFeatureOps;
+extern const AG_ObjectClass cadFeatureClass;
 __END_DECLS
 
 #include "close_code.h"

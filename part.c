@@ -37,7 +37,7 @@ CAD_PartNew(void *parent, const char *name)
 	CAD_Part *part;
 
 	part = Malloc(sizeof(CAD_Part));
-	AG_ObjectInit(part, &cadPartOps);
+	AG_ObjectInit(part, &cadPartClass);
 	AG_ObjectSetName(part, "%s", name);
 	AG_ObjectAttach(parent, part);
 	return (part);
@@ -120,7 +120,7 @@ FindFeatures(AG_Tlist *tl, AG_Object *pob, int depth)
 
 	it = AG_TlistAdd(tl, AG_ObjectIcon(pob), "%s", pob->name);
 	it->depth = depth;
-	it->cat = pob->ops->type;
+	it->cat = pob->cls->name;
 	it->p1 = pob;
 	if (nosel) {
 		it->flags |= AG_TLIST_NO_SELECT;
@@ -200,7 +200,7 @@ InsertFeature(AG_Event *event)
 {
 	char name[AG_OBJECT_NAME_MAX];
 	CAD_Part *part = AG_PTR(1);
-	AG_ObjectOps *ops = AG_PTR(2);
+	AG_ObjectClass *cls = AG_PTR(2);
 	char *basename = AG_STRING(3);
 	CAD_Feature *ft;
 	Uint name_no = 0;
@@ -209,8 +209,8 @@ tryname:
 	if (AG_ObjectFindChild(part, name) != NULL)
 		goto tryname;
 
-	ft = Malloc(ops->size);
-	AG_ObjectInit(ft, &cadFeatureOps);
+	ft = Malloc(cls->size);
+	AG_ObjectInit(ft, &cadFeatureClass);
 	AG_ObjectSetName(ft, "%s", name);
 	AG_ObjectAttach(part, ft);
 }
@@ -251,10 +251,10 @@ Edit(void *obj)
 	
 	pitem = AG_MenuAddItem(menu, _("Features"));
 	{
-		extern AG_ObjectOps cadExtrudedBossOps;
+		extern AG_ObjectClass cadExtrudedBossClass;
 	
 		AG_MenuAction(pitem, _("Extruded boss/base"), NULL,
-		    InsertFeature, "%p,%p,%s", part, &cadExtrudedBossOps,
+		    InsertFeature, "%p,%p,%s", part, &cadExtrudedBossClass,
 		    _("Extrusion"));
 	}
 
@@ -316,7 +316,7 @@ Edit(void *obj)
 	return (win);
 }
 
-const AG_ObjectOps cadPartOps = {
+const AG_ObjectClass cadPartClass = {
 	"CAD_Part",
 	sizeof(CAD_Part),
 	{ 0,0 },
