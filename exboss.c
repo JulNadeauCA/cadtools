@@ -29,7 +29,7 @@
 #include "exboss.h"
 
 static void
-Init(void *obj, const char *name)
+Init(void *obj)
 {
 	CAD_ExtrudedBoss *exboss = obj;
 
@@ -37,13 +37,10 @@ Init(void *obj, const char *name)
 }
 
 static int
-Load(void *obj, AG_DataSource *buf)
+Load(void *obj, AG_DataSource *buf, const AG_Version *ver)
 {
 	CAD_ExtrudedBoss *exboss = obj;
 
-	if (AG_ReadObjectVersion(buf, exboss, NULL) != 0) {
-		return (-1);
-	}
 	exboss->flags = (Uint)AG_ReadUint32(buf);
 	return (0);
 }
@@ -53,7 +50,6 @@ Save(void *obj, AG_DataSource *buf)
 {
 	CAD_ExtrudedBoss *exboss = obj;
 
-	AG_WriteVersion(buf, cadExtrudedBossOps.type, &cadExtrudedBossOps.ver);
 	AG_WriteUint32(buf, (Uint32)exboss->flags);
 	return (0);
 }

@@ -59,13 +59,10 @@ Destroy(void *obj)
 }
 
 static int
-Load(void *obj, AG_DataSource *buf)
+Load(void *obj, AG_DataSource *buf, const AG_Version *ver)
 {
 	CAD_Dummy *dummy = obj;
 
-	if (AG_ReadObjectVersion(buf, dummy, NULL) != 0) {
-		return (-1);
-	}
 	dummy->flags = (Uint)AG_ReadUint32(buf);
 	return (0);
 }
@@ -75,7 +72,6 @@ Save(void *obj, AG_DataSource *buf)
 {
 	CAD_Dummy *dummy = obj;
 
-	AG_WriteVersion(buf, cadDummyOps.type, &cadDummyOps.ver);
 	AG_WriteUint32(buf, (Uint32)dummy->flags);
 	return (0);
 }

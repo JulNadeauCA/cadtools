@@ -30,7 +30,7 @@
 #include "feature.h"
 
 static void
-Init(void *obj, const char *name)
+Init(void *obj)
 {
 	CAD_Feature *feature = obj;
 
@@ -38,13 +38,10 @@ Init(void *obj, const char *name)
 }
 
 static int
-Load(void *obj, AG_DataSource *buf)
+Load(void *obj, AG_DataSource *buf, const AG_Version *ver)
 {
 	CAD_Feature *feature = obj;
 
-	if (AG_ReadObjectVersion(buf, feature, NULL) != 0) {
-		return (-1);
-	}
 	feature->flags = (Uint)AG_ReadUint32(buf);
 	return (0);
 }
@@ -54,7 +51,6 @@ Save(void *obj, AG_DataSource *buf)
 {
 	CAD_Feature *feature = obj;
 
-	AG_WriteVersion(buf, cadFeatureOps.type, &cadFeatureOps.ver);
 	AG_WriteUint32(buf, (Uint32)feature->flags);
 	return (0);
 }

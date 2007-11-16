@@ -35,10 +35,6 @@
 static void
 RegisterClasses(void)
 {
-	extern const AG_ObjectOps camMachineOps;
-	extern const AG_ObjectOps camProgramOps;
-	extern const AG_ObjectOps cadPartOps;
-
 	AG_RegisterClass(&camMachineOps);
 	AG_RegisterClass(&camProgramOps);
 	AG_RegisterClass(&cadPartOps);
@@ -107,6 +103,8 @@ main(int argc, char *argv[])
 	if (AG_ObjectLoad(agWorld) == -1) {
 		AG_ObjectSave(agWorld);		/* Assume initial run */
 	}
+
+	/* Use Agar-DEV until editor is done */
 	DEV_InitSubsystem(0);
 	DEV_Browser();
 

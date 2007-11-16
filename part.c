@@ -84,13 +84,10 @@ Destroy(void *obj)
 }
 
 static int
-Load(void *obj, AG_DataSource *buf)
+Load(void *obj, AG_DataSource *buf, const AG_Version *ver)
 {
 	CAD_Part *part = obj;
 
-	if (AG_ReadObjectVersion(buf, part, NULL) != 0) {
-		return (-1);
-	}
 	AG_CopyString(part->descr, buf, sizeof(part->descr));
 	part->flags = AG_ReadUint32(buf);
 	return (0);
@@ -101,7 +98,6 @@ Save(void *obj, AG_DataSource *buf)
 {
 	CAD_Part *part = obj;
 
-	AG_WriteVersion(buf, cadPartOps.type, &cadPartOps.ver);
 	AG_WriteString(buf, part->descr);
 	AG_WriteUint32(buf, part->flags);
 	return (0);

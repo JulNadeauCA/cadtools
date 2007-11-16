@@ -145,13 +145,10 @@ Destroy(void *obj)
 }
 
 static int
-Load(void *obj, AG_DataSource *buf)
+Load(void *obj, AG_DataSource *buf, const AG_Version *ver)
 {
 	CAM_Machine *ma = obj;
 
-	if (AG_ReadObjectVersion(buf, ma, NULL) != 0) {
-		return (-1);
-	}
 	AG_CopyString(ma->descr, buf, sizeof(ma->descr));
 	ma->flags = AG_ReadUint32(buf);
 	AG_CopyString(ma->host, buf, sizeof(ma->host));
@@ -166,7 +163,6 @@ Save(void *obj, AG_DataSource *buf)
 {
 	CAM_Machine *ma = obj;
 
-	AG_WriteObjectVersion(buf, ma);
 	AG_WriteString(buf, ma->descr);
 	AG_WriteUint32(buf, ma->flags);
 	AG_WriteString(buf, ma->host);
