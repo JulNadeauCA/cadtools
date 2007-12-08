@@ -3,8 +3,8 @@
 #ifndef _CADTOOLS_PART_H_
 #define _CADTOOLS_PART_H_
 
-#include <agar/sg.h>
-#include <agar/sg/sg_view.h>
+#include <freesg/sg.h>
+#include <freesg/sg/sg_view.h>
 
 #include "begin_code.h"
 
@@ -20,7 +20,7 @@ typedef struct cad_part {
 } CAD_Part;
 
 __BEGIN_DECLS
-extern const AG_ObjectClass cadPartClass;
+extern AG_ObjectClass cadPartClass;
 
 CAD_Part *CAD_PartNew(void *, const char *);
 __END_DECLS

@@ -316,7 +316,7 @@ Edit(void *obj)
 	return (win);
 }
 
-const AG_ObjectClass cadPartClass = {
+AG_ObjectClass cadPartClass = {
 	"CAD_Part",
 	sizeof(CAD_Part),
 	{ 0,0 },

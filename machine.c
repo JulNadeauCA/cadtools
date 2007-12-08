@@ -70,8 +70,8 @@ Attached(AG_Event *event)
 	CAM_Machine *ma = AG_SELF();
 	SG_Light *lt;
 
-	AG_ThreadCreate(&ma->thNet, NULL, MachineThread, ma);
-	AG_ThreadCreate(&ma->thInact, NULL, InactivityCheck, ma);
+	AG_ThreadCreate(&ma->thNet, MachineThread, ma);
+	AG_ThreadCreate(&ma->thInact, InactivityCheck, ma);
 	
 	ma->model = SG_New(ma, "Geometric model");
 	{
@@ -124,7 +124,7 @@ Init(void *obj)
 	ma->host[0] = '\0';
 	ma->user[0] = '\0';
 	ma->pass[0] = '\0';
-	strlcpy(ma->port, _PROTO_MACHCTL_PORT, sizeof(ma->port));
+	Strlcpy(ma->port, _PROTO_MACHCTL_PORT, sizeof(ma->port));
 	ma->cons = NULL;
 	ma->model = NULL;
 	TAILQ_INIT(&ma->upload);
@@ -508,7 +508,7 @@ fail_close:
 	return (-1);
 }
 
-const AG_ObjectClass camMachineClass = {
+AG_ObjectClass camMachineClass = {
 	"CAM_Machine",
 	sizeof(CAM_Machine),
 	{ 0,0 },

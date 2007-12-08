@@ -3,8 +3,8 @@
 #ifndef _CADTOOLS_FEATURE_H_
 #define _CADTOOLS_FEATURE_H_
 
-#include <agar/sg.h>
-#include <agar/sg/sg_view.h>
+#include <freesg/sg.h>
+#include <freesg/sg/sg_view.h>
 
 #include "begin_code.h"
 
@@ -13,11 +13,11 @@ typedef struct cad_feature {
 	Uint flags;
 #define CAD_FEATURE_SUPPRESS	0x01			/* Inactive */
 
-	TAILQ_ENTRY(cad_feature) features;
+	AG_TAILQ_ENTRY(cad_feature) features;
 } CAD_Feature;
 
 __BEGIN_DECLS
-extern const AG_ObjectClass cadFeatureClass;
+extern AG_ObjectClass cadFeatureClass;
 __END_DECLS
 
 #include "close_code.h"

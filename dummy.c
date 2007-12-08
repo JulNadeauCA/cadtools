@@ -87,7 +87,7 @@ Edit(void *obj)
 	return (win);
 }
 
-const AG_ObjectClass cadDummyClass = {
+AG_ObjectClass cadDummyClass = {
 	"CAD_Dummy",
 	sizeof(CAD_Dummy),
 	{ 0,0 },

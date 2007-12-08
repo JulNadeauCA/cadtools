@@ -90,7 +90,7 @@ Edit(void *obj)
 	return (win);
 }
 
-const AG_ObjectClass camProgramClass = {
+AG_ObjectClass camProgramClass = {
 	"CAM_Program",
 	sizeof(CAM_Program),
 	{ 0,0 },

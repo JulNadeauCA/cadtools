@@ -3,7 +3,7 @@
 #ifndef _CADTOOLS_MACHINE_H_
 #define _CADTOOLS_MACHINE_H_
 
-#include <agar/sg.h>
+#include <freesg/sg.h>
 #include <agar/net.h>
 
 #include "program.h"
@@ -34,11 +34,11 @@ typedef struct cam_machine {
 	AG_Thread thInact;		 /* Inactivity timeout thread */
 	Uint32 tPong;			 /* Time of last ping */
 	AG_Console *cons;		 /* Status console (or NULL) */
-	TAILQ_HEAD(,cam_program) upload; /* Program upload queue */
+	AG_TAILQ_HEAD(,cam_program) upload; /* Program upload queue */
 } CAM_Machine;
 
 __BEGIN_DECLS
-extern const AG_ObjectClass camMachineClass;
+extern AG_ObjectClass camMachineClass;
 
 CAM_Machine	 *CAM_MachineNew(void *, const char *);
 void		  CAM_MachineLog(CAM_Machine *, const char *, ...);

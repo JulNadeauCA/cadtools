@@ -1,7 +1,7 @@
 /*	Public domain	*/
 
-#include <agar/sg.h>
-#include <agar/sg/sg_view.h>
+#include <freesg/sg.h>
+#include <freesg/sg/sg_view.h>
 
 #include "feature.h"
 
@@ -13,7 +13,7 @@ typedef struct cad_extruded_boss {
 } CAD_ExtrudedBoss;
 
 __BEGIN_DECLS
-extern const AG_ObjectClass cadExtrudedBossClass;
+extern AG_ObjectClass cadExtrudedBossClass;
 __END_DECLS
 
 #include "close_code.h"

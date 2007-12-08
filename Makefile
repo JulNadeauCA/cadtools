@@ -1,14 +1,19 @@
-#	$Csoft: Makefile,v 1.1 2005/09/28 15:46:13 vedge Exp $
-
 TOP=	.
 include Makefile.config
 
-PROG=	cadtools
+PROJECT=	"cadtools"
+PROJINCLUDES=	configure.lua
+
+PROG=		cadtools
+PROG_TYPE=	"GUI"
+PROG_GUID=	""
+PROG_LINKS=	ag_core ag_gui ag_map ag_rg ag_vg ag_dev \
+		pthreads SDL SDLmain opengl freetype
+
 SRCS=	cadtools.c part.c feature.c exboss.c program.c machine.c
 
-CFLAGS+=${AGAR_CFLAGS} ${AGAR_DEV_CFLAGS} ${AGAR_SG_CFLAGS} -I. \
-	-D_USE_AGAR_MATH
-LIBS+=	${AGAR_LIBS} ${AGAR_DEV_LIBS} ${AGAR_SG_LIBS}
+CFLAGS+=${AGAR_CFLAGS} ${AGAR_DEV_CFLAGS} ${FREESG_CFLAGS}
+LIBS+=	${AGAR_LIBS} ${AGAR_DEV_LIBS} ${FREESG_LIBS}
 
 all: all-subdir ${PROG}
 clean: clean-prog clean-subdir
@@ -24,6 +29,9 @@ configure: configure.in
 
 cleandir-config:
 	rm -fr config config.log
+
+snapshot: cleandir
+	sh mk/dist.sh snapshot
 
 package: cleandir
 	sh mk/dist.sh

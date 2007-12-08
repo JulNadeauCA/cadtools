@@ -3,8 +3,8 @@
 #ifndef _CADTOOLS_DUMMY_H_
 #define _CADTOOLS_DUMMY_H_
 
-#include <agar/sg.h>
-#include <agar/sg/sg_view.h>
+#include <freesg/sg.h>
+#include <freesg/sg/sg_view.h>
 
 #include "begin_code.h"
 
@@ -14,7 +14,7 @@ typedef struct cad_dummy {
 } CAD_Dummy;
 
 __BEGIN_DECLS
-extern const AG_ObjectClass cadDummyClass;
+extern AG_ObjectClass cadDummyClass;
 
 CAD_Dummy *CAD_DummyNew(void *, const char *);
 __END_DECLS
