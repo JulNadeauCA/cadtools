@@ -87,7 +87,7 @@ main(int argc, char *argv[])
 			exit(0);
 		}
 	}
-	if (AG_InitVideo(896,704,32,AG_VIDEO_OPENGL|AG_VIDEO_RESIZABLE) == -1) {
+	if (AG_InitVideo(800,600,32,AG_VIDEO_OPENGL|AG_VIDEO_RESIZABLE) == -1) {
 		fprintf(stderr, "%s\n", AG_GetError());
 		return (-1);
 	}
