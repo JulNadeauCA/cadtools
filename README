@@ -1,0 +1,49 @@
+
+CADTOOLS
+========
+
+What is it?
+-----------
+cadtools is an open-source 3D computer-aided design (CAD) and manufacturing
+(CAM) toolkit. Its main component is a parametric, feature-based, solid
+modeler which comprises a generic solver for systems of geometrical
+constraints. Eventually, we hope the solver will become sufficiently robust
+to handle rigid-body simulation over arbitrarily complex mechanical assemblies.
+
+A major advantage cadtools will have over commercial CAD packages, besides
+portability, will be extendability and an open, well-documented API.
+
+cadtools requires the Agar GUI system (http://libagar.org/) and the FreeSG 3D
+engine library (http://freesg.org/).
+
+cadtools is still in early development phase, but development is very active.
+Most of critical code being written for cadtools (such as geometric constraint
+solving) is actually being implemented into the FreeSG library.
+
+Documentation
+-------------
+This package includes API documentation in the form of manual pages. You
+can also read the manual pages online or download the pages in HTML or
+printable format from the cadtools website.
+
+Availability
+------------
+You can download the most recent cadtools version from the cadtools home page
+at http://hypertriton.com/catools/.
+
+Portability
+-----------
+cadtools is portable to all platforms supported by Agar. This includes,
+notably, Linux, IRIX, MacOS Classic, MacOS X, FreeBSD, NetBSD, OpenBSD,
+Windows, and even some game consoles. See: http://libagar.org/portable.html
+
+License
+-------
+cadtools is freely distributable under the terms the "revised" BSD license,
+without an advertising clause. See:
+http://hypertriton.com/cadtools/license.html.
+
+Acknowledgements
+----------------
+See: http://hypertriton.com/cadtools/credits.html
+
