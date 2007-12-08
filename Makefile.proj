@@ -1,0 +1,7 @@
+PROJECT=	"cadtools"
+PROJINCLUDES=	configure.lua
+PROJFILES=	windows:i386:vs2005:: \
+		windows:i386:vs2003:: \
+		windows:i386:vs2002:: \
+		windows:i386:vs6:: \
+		windows:i386:cb-gcc::

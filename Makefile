@@ -1,12 +1,10 @@
 TOP=	.
 include Makefile.config
-
-PROJECT=	"cadtools"
-PROJINCLUDES=	configure.lua
+include Makefile.proj
 
 PROG=		cadtools
 PROG_TYPE=	"GUI"
-PROG_GUID=	""
+PROG_GUID=	"666aff06-980e-432d-ad56-af1c868e7ec4"
 PROG_LINKS=	ag_core ag_gui ag_map ag_rg ag_vg ag_dev \
 		pthreads SDL SDLmain opengl freetype
 
@@ -42,4 +40,4 @@ release: cleandir
 .PHONY: clean cleandir install deinstall depend regress
 .PHONY: configure cleandir-config package release
 
-include ${TOP}/mk/csoft.prog.mk
+include ${TOP}/mk/build.prog.mk
