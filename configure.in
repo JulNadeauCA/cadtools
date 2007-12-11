@@ -36,13 +36,6 @@ if [ "${HAVE_FREESG}" = "no" ]; then
 	echo "*"
 	exit 1
 fi
-if [ "${HAVE_AGAR_DEV}" = "no" ]; then
-	echo "*"
-	echo "* Agar-DEV is not installed on your system. It is required by"
-	echo "* this package. See http://hypertriton.com/agar-dev/"
-	echo "*"
-	exit 1
-fi
 if [ "${HAVE_AGAR_NET}" = "no" ]; then
 	echo "*"
 	echo "* Agar-Net is not installed on your system. It is required by"
