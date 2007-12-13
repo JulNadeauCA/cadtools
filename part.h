@@ -3,9 +3,6 @@
 #ifndef _CADTOOLS_PART_H_
 #define _CADTOOLS_PART_H_
 
-#include <freesg/sg.h>
-#include <freesg/sg/sg_view.h>
-
 #include "begin_code.h"
 
 #define CAD_PART_DESCR_MAX 256
@@ -21,8 +18,6 @@ typedef struct cad_part {
 
 __BEGIN_DECLS
 extern AG_ObjectClass cadPartClass;
-
-CAD_Part *CAD_PartNew(void *, const char *);
 __END_DECLS
 
 #include "close_code.h"

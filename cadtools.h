@@ -1,6 +1,10 @@
 #ifndef _CADTOOLS_H_
 #define _CADTOOLS_H_
 
+#include <freesg/sg.h>
+#include <freesg/sg/sg_view.h>
+#include <agar/net.h>
+
 #ifdef _CADTOOLS_INTERNAL
 
 #include <agar/core/strlcpy.h>
@@ -33,10 +37,23 @@ typedef unsigned long Ulong;
 # define textdomain(d)
 # define bindtextdomain(p, d)
 #endif
+
+#ifdef WIN32
+# define PATHSEPC '\\'
+# define PATHSEP "\\"
+#else
+# define PATHSEPC '/'
+# define PATHSEP "/"
+#endif
 #endif /* _CADTOOLS_INTERNAL */
 
 #include "program.h"
+
+#include "fixture.h"
 #include "machine.h"
+#include "lathe.h"
+#include "mill.h"
+
 #include "part.h"
 #include "feature.h"
 

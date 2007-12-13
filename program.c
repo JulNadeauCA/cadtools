@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Hypertriton, Inc. <http://www.hypertriton.com>
+ * Copyright (c) 2007 Hypertriton, Inc. <http://hypertriton.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,18 +30,6 @@
 #include <string.h>
 
 #include "cadtools.h"
-
-CAM_Program *
-CAM_ProgramNew(void *parent, const char *name)
-{
-	CAM_Program *prog;
-
-	prog = Malloc(sizeof(CAM_Program));
-	AG_ObjectInit(prog, &camProgramClass);
-	AG_ObjectSetName(prog, "%s", name);
-	AG_ObjectAttach(parent, prog);
-	return (prog);
-}
 
 static void
 Init(void *obj)

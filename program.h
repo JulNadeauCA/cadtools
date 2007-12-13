@@ -23,8 +23,6 @@ typedef struct cam_program {
 
 __BEGIN_DECLS
 extern AG_ObjectClass camProgramClass;
-
-CAM_Program *CAM_ProgramNew(void *, const char *);
 __END_DECLS
 
 #include "close_code.h"

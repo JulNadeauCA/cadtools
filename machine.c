@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Hypertriton, Inc. <http://www.hypertriton.com>
+ * Copyright (c) 2007 Hypertriton, Inc. <http://hypertriton.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,18 +36,6 @@
 
 static void *MachineThread(void *);
 static void *InactivityCheck(void *);
-
-CAM_Machine *
-CAM_MachineNew(void *parent, const char *name)
-{
-	CAM_Machine *ma;
-
-	ma = Malloc(sizeof(CAM_Machine));
-	AG_ObjectInit(ma, &camMachineClass);
-	AG_ObjectSetName(ma, "%s", name);
-	AG_ObjectAttach(parent, ma);
-	return (ma);
-}
 
 void
 CAM_MachineLog(CAM_Machine *ma, const char *fmt, ...)
@@ -93,6 +81,7 @@ Detached(AG_Event *event)
 	CAM_Machine *ma = AG_SELF();
 	int i;
 
+	fprintf(stderr, "Detaching %s...", AGOBJECT(ma)->name);
 	AG_MutexLock(&ma->lock);
 	ma->flags |= CAM_MACHINE_DETACHING;
 	AG_MutexUnlock(&ma->lock);
@@ -110,6 +99,7 @@ Detached(AG_Event *event)
 		    AGOBJECT(ma)->name);
 	}
 out:
+	fprintf(stderr, "done\n");
 	AG_ObjectPageOut(ma->model);
 	return;
 }
@@ -293,13 +283,6 @@ ShowLightSettings(AG_Event *event)
 }
 
 static void
-PollSpecs(AG_Event *event)
-{
-	AG_Table *tbl = AG_SELF();
-	CAM_Machine *ma = AG_PTR(1);
-}
-
-static void
 PollUploadQueue(AG_Event *event)
 {
 	AG_Table *tbl = AG_SELF();
@@ -338,51 +321,24 @@ Edit(void *obj)
 {
 	CAM_Machine *ma = obj;
 	AG_Window *win;
-	AG_Menu *menu;
-	AG_MenuItem *pitem, *subitem;
 	SG_View *sgv;
 	AG_Notebook *nb;
 	AG_NotebookTab *ntab;
 	AG_Table *tbl;
-	AG_Box *box;
 	AG_Textbox *tb;
-	AG_Checkbox *cb;
+	AG_Button *btn;
 	AG_Pane *pane;
 	AG_Label *lbl;
-	AG_Button *btn;
 
 	win = AG_WindowNew(0);
 	AG_WindowSetCaption(win, "%s", AGOBJECT(ma)->name);
 
-	sgv = SG_ViewNew(NULL, ma->model, SG_VIEW_EXPAND);
-
-	menu = AG_MenuNew(win, AG_MENU_HFILL);
-	pitem = AG_MenuAddItem(menu, _("File"));
-	{
-		AG_MenuActionKb(pitem, _("Close"), agIconClose.s,
-		    SDLK_w, KMOD_CTRL, AGWINCLOSE(win));
-	}
-	pitem = AG_MenuAddItem(menu, _("Edit"));
-	{
-		AG_MenuAction(pitem, _("Undo"), NULL, NULL, NULL);
-		AG_MenuAction(pitem, _("Redo"), NULL, NULL, NULL);
-	}
-	pitem = AG_MenuAddItem(menu, _("Model View"));
-	{
-		AG_MenuAction(pitem, _("Default"), sgIconCamera.s,
-		    SetViewCamera, "%p,%s", sgv, "Camera0");
-		AG_MenuAction(pitem, _("Light0 settings..."), sgIconLighting.s,
-		    ShowLightSettings, "%p,%s", sgv, "Light0");
-		AG_MenuAction(pitem, _("Light1 settings..."), sgIconLighting.s,
-		    ShowLightSettings, "%p,%s", sgv, "Light1");
-	}
-	
 	nb = AG_NotebookNew(win, AG_NOTEBOOK_EXPAND);
+
 	ntab = AG_NotebookAddTab(nb, _("Status"), AG_BOX_VERT);
-	{
-		ma->cons = AG_ConsoleNew(ntab, AG_CONSOLE_EXPAND);
-	}
-	ntab = AG_NotebookAddTab(nb, _("Settings"), AG_BOX_VERT);
+	ma->cons = AG_ConsoleNew(ntab, AG_CONSOLE_EXPAND);
+	
+	ntab = AG_NotebookAddTab(nb, _("Controller"), AG_BOX_VERT);
 	{
 		tb = AG_TextboxNew(ntab, AG_TEXTBOX_HFILL, _("Hostname: "));
 		AG_WidgetBindString(tb, "string", ma->host, sizeof(ma->host));
@@ -400,13 +356,6 @@ Edit(void *obj)
 		    _("Enable machine"), EnableMachine, "%p", ma);
 		AG_WidgetBindFlag32(btn, "state", &ma->flags,
 		    CAM_MACHINE_ENABLED);
-	}
-	ntab = AG_NotebookAddTab(nb, _("Specs"), AG_BOX_VERT);
-	{
-		tbl = AG_TableNewPolled(ntab, AG_TABLE_EXPAND,
-		    PollSpecs, "%p", ma);
-		AG_TableAddCol(tbl, _("Parameter"), "<XXXXXXXXXXXXXX>", NULL);
-		AG_TableAddCol(tbl, _("Value"), NULL, NULL);
 	}
 	ntab = AG_NotebookAddTab(nb, _("Program Queue"), AG_BOX_VERT);
 	{
@@ -426,14 +375,14 @@ Edit(void *obj)
 		AG_TableAddCol(tbl, _("Owner"), "<XXXXXXXXX>", NULL);
 		AG_TableAddCol(tbl, _("Status"), NULL, NULL);
 	}
-	ntab = AG_NotebookAddTab(nb, _("Geometric model"), AG_BOX_VERT);
+	ntab = AG_NotebookAddTab(nb, _("3D model"), AG_BOX_VERT);
 	{
-		AG_ObjectAttach(ntab, sgv);
+		sgv = SG_ViewNew(ntab, ma->model, SG_VIEW_EXPAND);
 		AG_WidgetFocus(sgv);
 	}
 
 	AG_WidgetFocus(sgv);
-	return (win);
+	return (nb);
 }
 
 int

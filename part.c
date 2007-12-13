@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Hypertriton, Inc. <http://www.hypertriton.com>
+ * Copyright (c) 2007 Hypertriton, Inc. <http://hypertriton.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,18 +30,6 @@
 #include <string.h>
 
 #include "cadtools.h"
-
-CAD_Part *
-CAD_PartNew(void *parent, const char *name)
-{
-	CAD_Part *part;
-
-	part = Malloc(sizeof(CAD_Part));
-	AG_ObjectInit(part, &cadPartClass);
-	AG_ObjectSetName(part, "%s", name);
-	AG_ObjectAttach(parent, part);
-	return (part);
-}
 
 static void
 Init(void *obj)

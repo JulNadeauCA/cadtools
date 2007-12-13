@@ -1,10 +1,5 @@
 /*	Public domain	*/
 
-#include <freesg/sg.h>
-#include <freesg/sg/sg_view.h>
-
-#include "feature.h"
-
 #include "begin_code.h"
 
 typedef struct cad_extruded_boss {

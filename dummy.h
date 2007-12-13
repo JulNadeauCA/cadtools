@@ -3,9 +3,6 @@
 #ifndef _CADTOOLS_DUMMY_H_
 #define _CADTOOLS_DUMMY_H_
 
-#include <freesg/sg.h>
-#include <freesg/sg/sg_view.h>
-
 #include "begin_code.h"
 
 typedef struct cad_dummy {

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Hypertriton, Inc. <http://www.hypertriton.com>
+ * Copyright (c) 2007 Hypertriton, Inc. <http://hypertriton.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,37 +23,443 @@
  * USE OF THIS SOFTWARE EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <config/have_agar_dev.h>
+
 #include <agar/core.h>
 #include <agar/gui.h>
+#ifdef HAVE_AGAR_DEV
 #include <agar/dev.h>
+#endif
 
 #include <string.h>
+
+#ifdef HAVE_GETOPT
 #include <unistd.h>
+#endif
 
 #include "cadtools.h"
+
+static AG_Menu *appMenu = NULL;
+static AG_Object *objFocus = NULL;
 
 static void
 RegisterClasses(void)
 {
-	AG_RegisterClass(&camMachineClass);
 	AG_RegisterClass(&camProgramClass);
 	AG_RegisterClass(&cadPartClass);
+	AG_RegisterClass(&camMachineClass);
+	AG_RegisterClass(&camLatheClass);
+	AG_RegisterClass(&camMillClass);
+}
+
+static void
+SaveAndClose(AG_Object *obj, AG_Window *win)
+{
+	AG_ViewDetach(win);
+	AG_ObjectPageOut(obj);
+}
+
+static void
+SaveChangesReturn(AG_Event *event)
+{
+	AG_Window *win = AG_PTR(1);
+	AG_Object *obj = AG_PTR(2);
+
+	SaveAndClose(obj, win);
+}
+
+static void
+SaveChangesDlg(AG_Event *event)
+{
+	AG_Window *win = AG_SELF();
+	AG_Object *obj = AG_PTR(1);
+
+	if (!AG_ObjectChanged(obj)) {
+		SaveAndClose(obj, win);
+	} else {
+		AG_Button *bOpts[3];
+		AG_Window *wDlg;
+
+		wDlg = AG_TextPromptOptions(bOpts, 3,
+		    _("Save changes to %s?"), AGOBJECT(obj)->name);
+		AG_WindowAttach(win, wDlg);
+		
+		AG_ButtonText(bOpts[0], _("Save"));
+		AG_SetEvent(bOpts[0], "button-pushed", SaveChangesReturn,
+		    "%p,%p,%i", win, obj, 1);
+		AG_WidgetFocus(bOpts[0]);
+		AG_ButtonText(bOpts[1], _("Discard"));
+		AG_SetEvent(bOpts[1], "button-pushed", SaveChangesReturn,
+		    "%p,%p,%i", win, obj, 0);
+		AG_ButtonText(bOpts[2], _("Cancel"));
+		AG_SetEvent(bOpts[2], "button-pushed", AGWINDETACH(wDlg));
+	}
+}
+
+static void
+WindowGainedFocus(AG_Event *event)
+{
+	AG_Object *obj = AG_PTR(1);
+
+	if (AG_ObjectIsClass(obj, "SK:*") ||
+	    AG_ObjectIsClass(obj, "CAD_Part:*") ||
+	    AG_ObjectIsClass(obj, "CAM_Program:*")) {
+		objFocus = obj;
+	} else {
+		objFocus = NULL;
+	}
+}
+
+static void
+WindowLostFocus(AG_Event *event)
+{
+	objFocus = NULL;
+}
+
+static void
+CreateEditionWindow(AG_Object *obj)
+{
+	extern AG_Menu *agAppMenu;
+	AG_Window *win;
+
+	win = obj->cls->edit(obj);
+	AG_SetEvent(win, "window-close", SaveChangesDlg, "%p", obj);
+	AG_AddEvent(win, "window-gainfocus", WindowGainedFocus, "%p", obj);
+	AG_AddEvent(win, "window-lostfocus", WindowLostFocus, "%p", obj);
+	AG_AddEvent(win, "window-hidden", WindowLostFocus, "%p", obj);
+	AG_WindowShow(win);
+}
+
+static void
+NewObject(AG_Event *event)
+{
+	AG_ObjectClass *cls = AG_PTR(1);
+
+	CreateEditionWindow(AG_ObjectNew(agWorld, NULL, cls));
+}
+
+static void
+EditMachine(AG_Event *event)
+{
+	AG_Object *mach = AG_PTR(1);
+
+	CreateEditionWindow(mach);
+}
+
+static void
+SetArchivePath(void *obj, const char *path)
+{
+	const char *c;
+
+	AG_ObjectSetArchivePath(obj, path);
+
+	if ((c = strrchr(path, PATHSEPC)) != NULL && c[1] != '\0') {
+		AG_ObjectSetName(obj, "%s", &c[1]);
+	} else {
+		AG_ObjectSetName(obj, "%s", path);
+	}
+}
+
+static void
+OpenObjectFile(AG_Event *event)
+{
+	AG_ObjectClass *cls = AG_PTR(1);
+	char *path = AG_STRING(2);
+	AG_Object *obj;
+
+	obj = AG_ObjectNew(agWorld, NULL, cls);
+	if (AG_ObjectLoadFromFile(obj, path) == -1) {
+		AG_TextMsgFromError();
+		AG_ObjectDetach(obj);
+		AG_ObjectDestroy(obj);
+		return;
+	}
+	SetArchivePath(obj, path);
+	CreateEditionWindow(obj);
+}
+
+static void
+OpenDlg(AG_Event *event)
+{
+	AG_Window *win;
+	AG_FileDlg *fd;
+
+	win = AG_WindowNew(0);
+	AG_WindowSetCaption(win, _("Open..."));
+	fd = AG_FileDlgNewMRU(win, "cadtools.mru.parts",
+	    AG_FILEDLG_LOAD|AG_FILEDLG_CLOSEWIN|AG_FILEDLG_EXPAND);
+	AG_FileDlgAddType(fd, _("cadtools sketch"), "*.sk",
+	    OpenObjectFile, "%p", &skClass);
+	AG_FileDlgAddType(fd, _("cadtools part"), "*.part",
+	    OpenObjectFile, "%p", &cadPartClass);
+	AG_WindowShow(win);
+}
+
+static void
+SaveSketchToSK(AG_Event *event)
+{
+	SK *sk = AG_PTR(1);
+	char *path = AG_STRING(2);
+
+	if (AG_ObjectSaveToFile(sk, path) == -1) {
+		AG_TextMsgFromError();
+	}
+	SetArchivePath(sk, path);
+}
+
+static void
+SaveSketchToDXF(AG_Event *event)
+{
+//	SK *sk = AG_PTR(1);
+//	char *path = AG_STRING(2);
+
+	AG_TextMsg(AG_MSG_ERROR, "Not implemented yet");
+}
+
+static void
+SavePartToPART(AG_Event *event)
+{
+	CAD_Part *part = AG_PTR(1);
+	char *path = AG_STRING(2);
+
+	if (AG_ObjectSaveToFile(part, path) == -1) {
+		AG_TextMsgFromError();
+	}
+	SetArchivePath(part, path);
+}
+
+static void
+SavePartToPLY(AG_Event *event)
+{
+//	CAD_Part *part = AG_PTR(1);
+//	char *path = AG_STRING(2);
+
+	AG_TextMsg(AG_MSG_ERROR, "Not implemented yet");
+}
+
+static void
+SavePartToOBJ(AG_Event *event)
+{
+//	CAD_Part *part = AG_PTR(1);
+//	char *path = AG_STRING(2);
+
+	AG_TextMsg(AG_MSG_ERROR, "Not implemented yet");
+}
+
+static void
+SaveAsDlg(AG_Event *event)
+{
+	AG_Object *obj = AG_PTR(1);
+	AG_Window *win;
+	AG_FileDlg *fd;
+	AG_FileType *ft;
+
+	win = AG_WindowNew(0);
+	AG_WindowSetCaption(win, _("Save %s as..."), obj->name);
+	fd = AG_FileDlgNewMRU(win, "cadtools.mru.parts",
+	    AG_FILEDLG_SAVE|AG_FILEDLG_CLOSEWIN|AG_FILEDLG_EXPAND);
+	AG_FileDlgSetOptionContainer(fd, AG_BoxNewVert(win, AG_BOX_HFILL));
+
+	if (AG_ObjectIsClass(obj, "SK:*")) {
+		/*
+		 * Save to 2D sketch format
+		 */
+		AG_FileDlgAddType(fd, _("cadtools sketch"), "*.sk",
+		    SaveSketchToSK, "%p", obj);
+		ft = AG_FileDlgAddType(fd, _("AutoCAD DXF"), "*.dxf",
+		    SaveSketchToDXF, "%p", obj);
+		{
+			AG_FileOptionNewBool(ft, _("Binary format"),
+			    "dxf.binary", 1);
+		}
+	} else if (AG_ObjectIsClass(obj, "CAD_Part:*")) {
+		/*
+		 * Save to 3D object format
+		 */
+		AG_FileDlgAddType(fd, _("cadtools part"), "*.part",
+		    SavePartToPART, "%p", obj);
+		ft = AG_FileDlgAddType(fd, _("Stanford PLY"), "*.ply",
+		    SavePartToPLY, "%p", obj);
+		{
+			AG_FileOptionNewString(ft, _("Comment: "), "pkg-name",
+			    _("Created by cadtools - http://hypertriton.com/"));
+			AG_FileOptionNewBool(ft, _("Save vertex normals"),
+			    "ply.vtxnormals", 1);
+			AG_FileOptionNewBool(ft, _("Save vertex colors"),
+			    "ply.vtxcolors", 1);
+			AG_FileOptionNewBool(ft, _("Save texture coords"),
+			    "ply.texcoords", 1);
+		}
+		AG_FileDlgAddType(fd, _("Wavefront OBJ"), "*.obj",
+		    SavePartToOBJ, "%p", obj);
+	}
+
+	AG_WindowShow(win);
+}
+
+static void
+Save(AG_Event *event)
+{
+	AG_Object *obj = AG_PTR(1);
+
+	if (AGOBJECT(obj)->archivePath == NULL) {
+		SaveAsDlg(event);
+		return;
+	}
+	if (AG_ObjectSave(obj) == -1) {
+		AG_TextMsg(AG_MSG_ERROR, "Error saving object: %s",
+		    AG_GetError());
+	} else {
+		AG_TextInfo("Saved %s successfully", AGOBJECT(obj)->name);
+	}
+}
+
+static void
+ConfirmQuit(AG_Event *event)
+{
+	SDL_Event nev;
+
+	nev.type = SDL_USEREVENT;
+	SDL_PushEvent(&nev);
+}
+
+static void
+AbortQuit(AG_Event *event)
+{
+	AG_Window *win = AG_PTR(1);
+
+	agTerminating = 0;
+	AG_ViewDetach(win);
+}
+
+static void
+Quit(AG_Event *event)
+{
+	AG_Object *obj;
+	AG_Window *win;
+	AG_Box *box;
+
+	if (agTerminating) {
+		ConfirmQuit(NULL);
+	}
+	agTerminating = 1;
+
+	AGOBJECT_FOREACH_CHILD(obj, agWorld, ag_object) {
+		if (AG_ObjectChanged(obj))
+			break;
+	}
+	if (obj == NULL) {
+		ConfirmQuit(NULL);
+	} else {
+		if ((win = AG_WindowNewNamed(AG_WINDOW_MODAL|AG_WINDOW_NOTITLE|
+		    AG_WINDOW_NORESIZE, "QuitCallback")) == NULL) {
+			return;
+		}
+		AG_WindowSetCaption(win, "Exit application?");
+		AG_WindowSetPosition(win, AG_WINDOW_CENTER, 0);
+		AG_WindowSetSpacing(win, 8);
+		AG_LabelNewStaticString(win, 0,
+		    "There is at least one object with unsaved changes.  "
+	            "Exit application?");
+		box = AG_BoxNew(win, AG_BOX_HORIZ, AG_BOX_HOMOGENOUS|
+		                                   AG_VBOX_HFILL);
+		AG_BoxSetSpacing(box, 0);
+		AG_BoxSetPadding(box, 0);
+		AG_ButtonNewFn(box, 0, "Discard changes", ConfirmQuit, NULL);
+		AG_WidgetFocus(AG_ButtonNewFn(box, 0, "Cancel", AbortQuit,
+		    "%p", win));
+		AG_WindowShow(win);
+	}
+}
+
+static void
+FileMenu(AG_Event *event)
+{
+	AG_MenuItem *m = AG_SENDER();
+	AG_MenuItem *node;
+
+	AG_MenuActionKb(m, "New sketch...", agIconDoc.s, SDLK_s, KMOD_ALT,
+	    NewObject, "%p", &skClass);
+	AG_MenuActionKb(m, "New part...", agIconDoc.s, SDLK_p, KMOD_ALT,
+	    NewObject, "%p", &cadPartClass);
+	AG_MenuActionKb(m, "New program...", agIconDoc.s, SDLK_c, KMOD_ALT,
+	    NewObject, "%p", &camProgramClass);
+
+	AG_MenuActionKb(m, "Open...", agIconLoad.s, SDLK_o, KMOD_CTRL,
+	    OpenDlg, NULL);
+
+	if (objFocus == NULL) { AG_MenuDisable(m); }
+
+	AG_MenuActionKb(m, "Save", agIconSave.s, SDLK_s, KMOD_CTRL,
+	    Save, "%p", objFocus);
+	AG_MenuAction(m, "Save as...", agIconSave.s,
+	    SaveAsDlg, "%p", objFocus);
+	
+	if (objFocus == NULL) { AG_MenuEnable(m); }
+	
+	AG_MenuSeparator(m);
+
+	node = AG_MenuNode(m, "Machines", NULL);
+	{
+		CAM_Machine *mach;
+
+		AG_MenuAction(node, "New lathe...", agIconDoc.s,
+		    NewObject, "%p", &camLatheClass);
+		AG_MenuAction(node, "New mill...", agIconDoc.s,
+		    NewObject, "%p", &camMillClass);
+
+		AG_MenuSeparator(node);
+
+		AGOBJECT_FOREACH_CLASS(mach, agWorld, cam_machine,
+		    "CAM_Machine:*") {
+			AG_MenuAction(node, AGOBJECT(mach)->name, agIconGear.s,
+			    EditMachine, "%p", mach);
+		}
+	}
+	
+	AG_MenuSeparator(m);
+	
+	AG_MenuActionKb(m, "Quit", NULL, SDLK_q, KMOD_CTRL, Quit, NULL);
+}
+
+static void
+Undo(AG_Event *event)
+{
+	/* TODO */
+	printf("undo!\n");
+}
+
+static void
+EditMenu(AG_Event *event)
+{
+	AG_MenuItem *m = AG_SENDER();
+	
+	if (objFocus == NULL) { AG_MenuDisable(m); }
+
+	AG_MenuActionKb(m, "Undo", NULL, SDLK_z, KMOD_CTRL,
+	    Undo, "%p", objFocus);
+
+	if (objFocus == NULL) { AG_MenuEnable(m); }
 }
 
 int
 main(int argc, char *argv[])
 {
-	int c, i, fps = -1;
+	int c, i, fps = -1, debug = 0;
 	char *s;
 
 	if (AG_InitCore("cadtools", AG_CORE_VERBOSE) == -1) {
 		fprintf(stderr, "%s\n", AG_GetError());
 		return (1);
 	}
-	while ((c = getopt(argc, argv, "?vfFbBt:T:r:")) != -1) {
+#ifdef HAVE_GETOPT
+	while ((c = getopt(argc, argv, "?dvfFbBt:T:r:")) != -1) {
 		extern char *optarg;
 
 		switch (c) {
+		case 'd':
+			debug = 1;
+			break;
 		case 'v':
 			exit(0);
 		case 'f':
@@ -67,12 +473,9 @@ main(int argc, char *argv[])
 			break;
 		case 'b':
 			AG_SetBool(agConfig, "font.freetype", 0);
-			AG_SetString(agConfig, "font-face", "minimal.xcf");
-			AG_SetInt(agConfig, "font-size", 11);
 			break;
 		case 'B':
 			AG_SetBool(agConfig, "font.freetype", 1);
-			AG_SetString(agConfig, "font-face", "Vera.ttf");
 			break;
 		case 'T':
 			AG_SetString(agConfig, "font-path", "%s", optarg);
@@ -87,32 +490,37 @@ main(int argc, char *argv[])
 			exit(0);
 		}
 	}
+#endif /* HAVE_GETOPT */
+
 	if (AG_InitVideo(800,600,32,AG_VIDEO_OPENGL|AG_VIDEO_RESIZABLE) == -1) {
 		fprintf(stderr, "%s\n", AG_GetError());
 		return (-1);
 	}
-	AG_InitInput(0);
 	SG_InitSubsystem();
 	SK_InitSubsystem();
 	AG_SetRefreshRate(fps);
 	AG_BindGlobalKey(SDLK_ESCAPE, KMOD_NONE, AG_Quit);
 	AG_BindGlobalKey(SDLK_F8, KMOD_NONE, AG_ViewCapture);
 
-	/* Reload the previous state. */
+	/* Register our classes and load the last VFS state. */
 	RegisterClasses();
-	if (AG_ObjectLoad(agWorld) == -1) {
+	if (AG_ObjectLoad(agWorld) == -1)
 		AG_ObjectSave(agWorld);		/* Assume initial run */
+
+	/* Create the application menu. */ 
+	appMenu = AG_MenuNewGlobal(0);
+	AG_MenuDynamicItem(appMenu->root, "File", NULL, FileMenu, NULL);
+	AG_MenuDynamicItem(appMenu->root, "Edit", NULL, EditMenu, NULL);
+
+#ifdef HAVE_AGAR_DEV
+	if (debug) {
+		DEV_InitSubsystem(0);
+		DEV_Browser();
+		DEV_ToolMenu(AG_MenuNode(appMenu->root, "Debug", NULL));
 	}
-
-	/* Use Agar-DEV until editor is done */
-	DEV_InitSubsystem(0);
-	DEV_Browser();
-
+#endif
 	AG_EventLoop();
 	AG_Destroy();
 	return (0);
-fail:
-	AG_Destroy();
-	return (1);
 }
 

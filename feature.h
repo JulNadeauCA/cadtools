@@ -3,9 +3,6 @@
 #ifndef _CADTOOLS_FEATURE_H_
 #define _CADTOOLS_FEATURE_H_
 
-#include <freesg/sg.h>
-#include <freesg/sg/sg_view.h>
-
 #include "begin_code.h"
 
 typedef struct cad_feature {

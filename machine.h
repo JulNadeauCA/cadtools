@@ -3,11 +3,6 @@
 #ifndef _CADTOOLS_MACHINE_H_
 #define _CADTOOLS_MACHINE_H_
 
-#include <freesg/sg.h>
-#include <agar/net.h>
-
-#include "program.h"
-
 #include "begin_code.h"
 
 #define CAM_MACHINE_DESCR_MAX	256
@@ -40,7 +35,6 @@ typedef struct cam_machine {
 __BEGIN_DECLS
 extern AG_ObjectClass camMachineClass;
 
-CAM_Machine	 *CAM_MachineNew(void *, const char *);
 void		  CAM_MachineLog(CAM_Machine *, const char *, ...);
 int		  CAM_MachineUploadProgram(CAM_Machine *, CAM_Program *);
 __END_DECLS
