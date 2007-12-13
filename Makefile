@@ -8,7 +8,8 @@ PROG_GUID=	"666aff06-980e-432d-ad56-af1c868e7ec4"
 PROG_LINKS=	ag_core ag_gui ag_map ag_rg ag_vg ag_dev \
 		pthreads SDL SDLmain opengl freetype
 
-SRCS=	cadtools.c part.c feature.c exboss.c program.c machine.c
+SRCS=	cadtools.c part.c feature.c exboss.c program.c machine.c lathe.c \
+	mill.c
 
 CFLAGS+=${AGAR_CFLAGS} ${AGAR_DEV_CFLAGS} ${FREESG_CFLAGS}
 LIBS+=	${AGAR_LIBS} ${AGAR_DEV_LIBS} ${FREESG_LIBS}
