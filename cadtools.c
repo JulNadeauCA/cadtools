@@ -23,6 +23,10 @@
  * USE OF THIS SOFTWARE EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+/*
+ * Main graphical user interface for cadtools.
+ */
+
 #include <config/have_agar_dev.h>
 
 #include <agar/core.h>
@@ -40,7 +44,7 @@
 #include "cadtools.h"
 
 static AG_Menu *appMenu = NULL;
-static AG_Object *objFocus = NULL;
+static void *objFocus = NULL;
 
 static void
 RegisterClasses(void)
@@ -116,9 +120,10 @@ WindowLostFocus(AG_Event *event)
 	objFocus = NULL;
 }
 
-static void
-CreateEditionWindow(AG_Object *obj)
+AG_Window *
+CAD_CreateEditionWindow(void *p)
 {
+	AG_Object *obj = p;
 	extern AG_Menu *agAppMenu;
 	AG_Window *win;
 
@@ -128,6 +133,7 @@ CreateEditionWindow(AG_Object *obj)
 	AG_AddEvent(win, "window-lostfocus", WindowLostFocus, "%p", obj);
 	AG_AddEvent(win, "window-hidden", WindowLostFocus, "%p", obj);
 	AG_WindowShow(win);
+	return (win);
 }
 
 static void
@@ -135,7 +141,7 @@ NewObject(AG_Event *event)
 {
 	AG_ObjectClass *cls = AG_PTR(1);
 
-	CreateEditionWindow(AG_ObjectNew(agWorld, NULL, cls));
+	CAD_CreateEditionWindow(AG_ObjectNew(agWorld, NULL, cls));
 }
 
 static void
@@ -143,11 +149,11 @@ EditMachine(AG_Event *event)
 {
 	AG_Object *mach = AG_PTR(1);
 
-	CreateEditionWindow(mach);
+	CAD_CreateEditionWindow(mach);
 }
 
-static void
-SetArchivePath(void *obj, const char *path)
+void
+CAD_SetArchivePath(void *obj, const char *path)
 {
 	const char *c;
 
@@ -160,22 +166,22 @@ SetArchivePath(void *obj, const char *path)
 	}
 }
 
+/* Load an object file from native cadtools format. */
 static void
-OpenObjectFile(AG_Event *event)
+OpenSketch(AG_Event *event)
 {
-	AG_ObjectClass *cls = AG_PTR(1);
-	char *path = AG_STRING(2);
+	char *path = AG_STRING(1);
 	AG_Object *obj;
 
-	obj = AG_ObjectNew(agWorld, NULL, cls);
+	obj = AG_ObjectNew(agWorld, NULL, &skClass);
 	if (AG_ObjectLoadFromFile(obj, path) == -1) {
 		AG_TextMsgFromError();
 		AG_ObjectDetach(obj);
 		AG_ObjectDestroy(obj);
 		return;
 	}
-	SetArchivePath(obj, path);
-	CreateEditionWindow(obj);
+	CAD_SetArchivePath(obj, path);
+	CAD_CreateEditionWindow(obj);
 }
 
 static void
@@ -183,16 +189,24 @@ OpenDlg(AG_Event *event)
 {
 	AG_Window *win;
 	AG_FileDlg *fd;
+	AG_FileType *ft;
+	AG_Pane *hPane;
 
 	win = AG_WindowNew(0);
 	AG_WindowSetCaption(win, _("Open..."));
-	fd = AG_FileDlgNewMRU(win, "cadtools.mru.parts",
+
+	hPane = AG_PaneNewHoriz(win, AG_PANE_EXPAND);
+	fd = AG_FileDlgNewMRU(hPane->div[0], "cadtools.mru.parts",
 	    AG_FILEDLG_LOAD|AG_FILEDLG_CLOSEWIN|AG_FILEDLG_EXPAND);
+	AG_FileDlgSetOptionContainer(fd, hPane->div[1]);
+
 	AG_FileDlgAddType(fd, _("cadtools sketch"), "*.sk",
-	    OpenObjectFile, "%p", &skClass);
-	AG_FileDlgAddType(fd, _("cadtools part"), "*.part",
-	    OpenObjectFile, "%p", &cadPartClass);
+	    OpenSketch, NULL);
+
+	CAD_PartOpenMenu(fd);
 	AG_WindowShow(win);
+	AG_WindowSetGeometry(win, AGWIDGET(win)->x-100, AGWIDGET(win)->y,
+	                          AGWIDGET(win)->w+200, AGWIDGET(win)->h);
 }
 
 static void
@@ -204,43 +218,13 @@ SaveSketchToSK(AG_Event *event)
 	if (AG_ObjectSaveToFile(sk, path) == -1) {
 		AG_TextMsgFromError();
 	}
-	SetArchivePath(sk, path);
+	CAD_SetArchivePath(sk, path);
 }
 
 static void
 SaveSketchToDXF(AG_Event *event)
 {
 //	SK *sk = AG_PTR(1);
-//	char *path = AG_STRING(2);
-
-	AG_TextMsg(AG_MSG_ERROR, "Not implemented yet");
-}
-
-static void
-SavePartToPART(AG_Event *event)
-{
-	CAD_Part *part = AG_PTR(1);
-	char *path = AG_STRING(2);
-
-	if (AG_ObjectSaveToFile(part, path) == -1) {
-		AG_TextMsgFromError();
-	}
-	SetArchivePath(part, path);
-}
-
-static void
-SavePartToPLY(AG_Event *event)
-{
-//	CAD_Part *part = AG_PTR(1);
-//	char *path = AG_STRING(2);
-
-	AG_TextMsg(AG_MSG_ERROR, "Not implemented yet");
-}
-
-static void
-SavePartToOBJ(AG_Event *event)
-{
-//	CAD_Part *part = AG_PTR(1);
 //	char *path = AG_STRING(2);
 
 	AG_TextMsg(AG_MSG_ERROR, "Not implemented yet");
@@ -273,27 +257,8 @@ SaveAsDlg(AG_Event *event)
 			    "dxf.binary", 1);
 		}
 	} else if (AG_ObjectIsClass(obj, "CAD_Part:*")) {
-		/*
-		 * Save to 3D object format
-		 */
-		AG_FileDlgAddType(fd, _("cadtools part"), "*.part",
-		    SavePartToPART, "%p", obj);
-		ft = AG_FileDlgAddType(fd, _("Stanford PLY"), "*.ply",
-		    SavePartToPLY, "%p", obj);
-		{
-			AG_FileOptionNewString(ft, _("Comment: "), "pkg-name",
-			    _("Created by cadtools - http://hypertriton.com/"));
-			AG_FileOptionNewBool(ft, _("Save vertex normals"),
-			    "ply.vtxnormals", 1);
-			AG_FileOptionNewBool(ft, _("Save vertex colors"),
-			    "ply.vtxcolors", 1);
-			AG_FileOptionNewBool(ft, _("Save texture coords"),
-			    "ply.texcoords", 1);
-		}
-		AG_FileDlgAddType(fd, _("Wavefront OBJ"), "*.obj",
-		    SavePartToOBJ, "%p", obj);
+		CAD_PartSaveMenu(fd, (CAD_Part *)obj);
 	}
-
 	AG_WindowShow(win);
 }
 
@@ -430,6 +395,13 @@ Undo(AG_Event *event)
 }
 
 static void
+Redo(AG_Event *event)
+{
+	/* TODO */
+	printf("redo!\n");
+}
+
+static void
 EditMenu(AG_Event *event)
 {
 	AG_MenuItem *m = AG_SENDER();
@@ -438,8 +410,30 @@ EditMenu(AG_Event *event)
 
 	AG_MenuActionKb(m, "Undo", NULL, SDLK_z, KMOD_CTRL,
 	    Undo, "%p", objFocus);
+	
+	AG_MenuActionKb(m, "Redo", NULL, SDLK_r, KMOD_CTRL,
+	    Redo, "%p", objFocus);
 
 	if (objFocus == NULL) { AG_MenuEnable(m); }
+}
+
+static void
+FeaturesMenu(AG_Event *event)
+{
+	extern AG_ObjectClass cadExtrudedBossClass;
+	AG_MenuItem *m = AG_SENDER();
+	CAD_Part *part;
+	
+	if (objFocus == NULL) {
+		return;
+	}
+	if (AG_ObjectIsClass(objFocus, "CAD_Part:*")) {
+		CAD_Part *part = objFocus;
+
+		AG_MenuAction(m, _("Extruded boss/base"), NULL,
+		    CAD_PartInsertFeature, "%p,%p,%s", part,
+		    &cadExtrudedBossClass, _("Extrusion"));
+	}
 }
 
 int
@@ -511,6 +505,7 @@ main(int argc, char *argv[])
 	appMenu = AG_MenuNewGlobal(0);
 	AG_MenuDynamicItem(appMenu->root, "File", NULL, FileMenu, NULL);
 	AG_MenuDynamicItem(appMenu->root, "Edit", NULL, EditMenu, NULL);
+	AG_MenuDynamicItem(appMenu->root, "Features", NULL, FeaturesMenu, NULL);
 
 #ifdef HAVE_AGAR_DEV
 	if (debug) {
@@ -523,4 +518,3 @@ main(int argc, char *argv[])
 	AG_Destroy();
 	return (0);
 }
-

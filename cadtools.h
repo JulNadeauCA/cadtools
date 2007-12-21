@@ -57,4 +57,11 @@ typedef unsigned long Ulong;
 #include "part.h"
 #include "feature.h"
 
+#include "begin_code.h"
+__BEGIN_DECLS
+void       CAD_SetArchivePath(void *, const char *);
+AG_Window *CAD_CreateEditionWindow(void *);
+__END_DECLS
+#include "close_code.h"
+
 #endif /* _CADTOOLS_H_ */

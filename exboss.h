@@ -4,6 +4,8 @@
 
 typedef struct cad_extruded_boss {
 	struct cad_feature feat;
+	SK *sk;					/* Source sketch */
+	
 	Uint flags;
 } CAD_ExtrudedBoss;
 

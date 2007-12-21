@@ -31,6 +31,8 @@
 
 #include "cadtools.h"
 
+#include <freesg/sg/sg_load_ply.h>
+
 static void
 Init(void *obj)
 {
@@ -183,8 +185,8 @@ ShowLightSettings(AG_Event *event)
 	AG_WindowShow(win);
 }
 
-static void
-InsertFeature(AG_Event *event)
+void
+CAD_PartInsertFeature(AG_Event *event)
 {
 	char name[AG_OBJECT_NAME_MAX];
 	CAD_Part *part = AG_PTR(1);
@@ -201,6 +203,126 @@ tryname:
 	AG_ObjectInit(ft, &cadFeatureClass);
 	AG_ObjectSetName(ft, "%s", name);
 	AG_ObjectAttach(part, ft);
+}
+
+/* Save part to native cadtools format. */
+static void
+SavePartToNative(AG_Event *event)
+{
+	CAD_Part *part = AG_PTR(1);
+	char *path = AG_STRING(2);
+
+	if (AG_ObjectSaveToFile(part, path) == -1) {
+		AG_TextMsgFromError();
+	}
+	CAD_SetArchivePath(part, path);
+}
+
+/* Save part to Stanford PLY format. */
+static void
+SavePartToPLY(AG_Event *event)
+{
+//	CAD_Part *part = AG_PTR(1);
+//	char *path = AG_STRING(2);
+
+	AG_TextMsg(AG_MSG_ERROR, "Not implemented yet");
+}
+
+/* Save part to Wavefront OBJ format. */
+static void
+SavePartToOBJ(AG_Event *event)
+{
+//	CAD_Part *part = AG_PTR(1);
+//	char *path = AG_STRING(2);
+
+	AG_TextMsg(AG_MSG_ERROR, "Not implemented yet");
+}
+
+void
+CAD_PartSaveMenu(AG_FileDlg *fd, CAD_Part *part)
+{
+	AG_FileType *ft;
+
+	AG_FileDlgAddType(fd, _("Native cadtools part"), "*.part",
+	    SavePartToNative, "%p", part);
+
+	ft = AG_FileDlgAddType(fd, _("Stanford PLY"), "*.ply",
+	    SavePartToPLY, "%p", part);
+	AG_FileOptionNewString(ft, _("Comment: "), "ply.comment", "");
+	AG_FileOptionNewBool(ft, _("Save vertex normals"), "ply.vtxnormals", 1);
+	AG_FileOptionNewBool(ft, _("Save vertex colors"), "ply.vtxcolors", 1);
+	AG_FileOptionNewBool(ft, _("Save texture coords"), "ply.texcoords", 1);
+
+	AG_FileDlgAddType(fd, _("Wavefront OBJ"), "*.obj",
+	    SavePartToOBJ, "%p", part);
+}
+
+/* Open a part in native cadtools format. */
+static void
+OpenPartNative(AG_Event *event)
+{
+	char *path = AG_STRING(2);
+	AG_Object *obj;
+
+	obj = AG_ObjectNew(agWorld, NULL, &cadPartClass);
+	if (AG_ObjectLoadFromFile(obj, path) == -1) {
+		AG_TextMsgFromError();
+		AG_ObjectDetach(obj);
+		AG_ObjectDestroy(obj);
+		return;
+	}
+	CAD_SetArchivePath(obj, path);
+	CAD_CreateEditionWindow(obj);
+}
+
+/* Generate a new part from a mesh in PLY format. */
+static void
+OpenPartFromPLY(AG_Event *event)
+{
+	char *path = AG_STRING(1);
+	AG_FileType *ft = AG_PTR(2);
+	CAD_Part *part;
+	SG_Object *so;
+	Uint flags = 0;
+
+	part = AG_ObjectNew(agWorld, NULL, &cadPartClass);
+
+	if (AG_FileOptionInt(ft, "ply.vtxnormals"))
+		flags |= SG_PLY_LOAD_VTX_NORMALS;
+	if (AG_FileOptionInt(ft, "ply.vtxcolors"))
+		flags |= SG_PLY_LOAD_VTX_COLORS;
+	if (AG_FileOptionInt(ft, "ply.texcoords"))
+		flags |= SG_PLY_LOAD_TEXCOORDS;
+	if (AG_FileOptionInt(ft, "ply.dups"))
+		flags |= SG_PLY_DUP_VERTICES;
+
+	so = SG_ObjectNew(NULL, "Imported mesh");
+	if (SG_ObjectLoadPLY(so, path, flags) == -1) {
+		AG_TextMsg(AG_MSG_ERROR, "%s: %s", path, AG_GetError());
+		SG_ObjectDestroy(so);
+		return;
+	}
+	SG_NodeAttach(part->sg->root, so);
+	SG_UniScale(so, AG_FileOptionFlt(ft,"ply.scale"));
+	SG_ObjectNormalize(so);
+	CAD_CreateEditionWindow(part);
+}
+
+void
+CAD_PartOpenMenu(AG_FileDlg *fd)
+{
+	AG_FileType *ft;
+
+	AG_FileDlgAddType(fd, _("Native cadtools part"), "*.part",
+	    OpenPartNative, NULL);
+	ft = AG_FileDlgAddType(fd, _("Stanford PLY"), "*.ply",
+	    OpenPartFromPLY, NULL);
+	AG_FileOptionNewFlt(ft, _("Scaling factor"), "ply.scale", 1.0,
+	    1e-6, 1e6, NULL);
+	AG_FileOptionNewBool(ft, _("Load vertex normals"), "ply.vtxnormals", 1);
+	AG_FileOptionNewBool(ft, _("Load vertex colors"), "ply.vtxcolors", 1);
+	AG_FileOptionNewBool(ft, _("Load texture coords"), "ply.texcoords", 1);
+	AG_FileOptionNewBool(ft, _("Detect duplicate vertices"), "ply.dups", 1);
 }
 
 static void *
@@ -221,37 +343,7 @@ Edit(void *obj)
 	sgv = SG_ViewNew(NULL, part->sg, SG_VIEW_EXPAND);
 
 	menu = AG_MenuNew(win, AG_MENU_HFILL);
-	pitem = AG_MenuAddItem(menu, _("File"));
-	{
-#if 0
-		AG_MenuActionKb(pitem, _("Revert"), agIconLoad.s,
-		    SDLK_r, KMOD_CTRL, RevertPart, "%p", part);
-		AG_MenuActionKb(pitem, _("Save"), agIconSave.s,
-		    SDLK_s, KMOD_CTRL, SavePart, "%p", part);
-		AG_MenuSeparator(pitem);
-		AG_MenuAction(pitem, _("Document properties..."), agIconGear.s,
-		    ShowDocumentProps, "%p,%p", win, part);
-#endif
-		AG_MenuSeparator(pitem);
-		AG_MenuActionKb(pitem, _("Close document"), agIconClose.s,
-		    SDLK_w, KMOD_CTRL, AGWINCLOSE(win));
-	}
-	
-	pitem = AG_MenuAddItem(menu, _("Features"));
-	{
-		extern AG_ObjectClass cadExtrudedBossClass;
-	
-		AG_MenuAction(pitem, _("Extruded boss/base"), NULL,
-		    InsertFeature, "%p,%p,%s", part, &cadExtrudedBossClass,
-		    _("Extrusion"));
-	}
 
-	pitem = AG_MenuAddItem(menu, _("Edit"));
-	{
-		AG_MenuAction(pitem, _("Undo"), NULL, NULL, NULL);
-		AG_MenuAction(pitem, _("Redo"), NULL, NULL, NULL);
-	}
-	
 	pitem = AG_MenuAddItem(menu, _("View"));
 	{
 		AG_MenuAction(pitem, _("Default"), sgIconCamera.s,
