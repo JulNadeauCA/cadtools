@@ -120,6 +120,17 @@ do
 	esac
 done
 
+if [ -e "/bin/echo" ]; then
+    /bin/echo -n ""
+    if [ $? = 0 ]; then
+    	ECHO_N="/bin/echo -n"
+    else
+    	ECHO_N="echo -n"
+    fi
+else
+    ECHO_N="echo -n"
+fi
+
 if [ "${prefix}" != "" ]; then
     PREFIX="$prefix"
 else
@@ -369,7 +380,7 @@ echo "CFLAGS=$CFLAGS" >>Makefile.config
 echo "mdefs[\"CFLAGS\"] = \"$CFLAGS\"" >>configure.lua
 echo "CXXFLAGS=$CXXFLAGS" >>Makefile.config
 echo "mdefs[\"CXXFLAGS\"] = \"$CXXFLAGS\"" >>configure.lua
-VERSION="12092007"
+VERSION="12212007"
 echo "#ifndef VERSION" > config/version.h
 echo "#define VERSION \"$VERSION\"" >> config/version.h
 echo "#endif" >> config/version.h
@@ -379,8 +390,8 @@ echo "#ifndef RELEASE" > config/release.h
 echo "#define RELEASE \"$RELEASE\"" >> config/release.h
 echo "#endif" >> config/release.h
 echo "hdefs[\"RELEASE\"] = \"$RELEASE\"" >>configure.lua
-echo -n "checking for a usable C compiler..."
-echo -n "checking for a usable C compiler..." >> config.log
+$ECHO_N "checking for a usable C compiler..."
+$ECHO_N "checking for a usable C compiler..." >> config.log
 if [ "$CC" = "" ]; then
 	for i in `echo $PATH |sed 's/:/ /g'`; do
 		if [ -x "${i}/cc" ]; then
@@ -414,8 +425,8 @@ fi
 echo "yes"
 rm -f cc-test cc-test.c
 TEST_CFLAGS=""
-echo -n "checking for compiler warnings..."
-echo -n "checking for compiler warnings..." >> config.log
+$ECHO_N "checking for compiler warnings..."
+$ECHO_N "checking for compiler warnings..." >> config.log
 cat << EOT > conftest.c
 int main(int argc, char *argv[]) { return (0); }
 
@@ -447,8 +458,8 @@ rm -f $testdir/conftest conftest.c
 if [ "${HAVE_CC_WARNINGS}" = "yes" ]; then
 TEST_CFLAGS="-Wall -Werror"
 fi;
-echo -n "checking for IEEE754 floating point..."
-echo -n "checking for IEEE754 floating point..." >> config.log
+$ECHO_N "checking for IEEE754 floating point..."
+$ECHO_N "checking for IEEE754 floating point..." >> config.log
 cat << EOT > conftest.c
 int
 main(int argc, char *argv[])
@@ -485,8 +496,8 @@ echo "#undef HAVE_IEEE754" >config/have_ieee754.h
 echo "hdefs[\"HAVE_IEEE754\"] = nil" >>configure.lua
 fi;
 rm -f $testdir/conftest conftest.c
-echo -n "checking __bounded__ attribute..."
-echo -n "checking __bounded__ attribute..." >> config.log
+$ECHO_N "checking __bounded__ attribute..."
+$ECHO_N "checking __bounded__ attribute..." >> config.log
 cat << EOT > conftest.c
 void foo(char *, int) __attribute__ ((__bounded__(__string__,1,2)));
 void foo(char *a, int c) { }
@@ -522,8 +533,8 @@ echo "#undef HAVE_BOUNDED_ATTRIBUTE" >config/have_bounded_attribute.h
 echo "hdefs[\"HAVE_BOUNDED_ATTRIBUTE\"] = nil" >>configure.lua
 fi;
 rm -f $testdir/conftest conftest.c
-echo -n "checking __format__ attribute..."
-echo -n "checking __format__ attribute..." >> config.log
+$ECHO_N "checking __format__ attribute..."
+$ECHO_N "checking __format__ attribute..." >> config.log
 cat << EOT > conftest.c
 #include <stdarg.h>
 void foo1(char *, ...)
@@ -565,8 +576,8 @@ echo "#undef HAVE_FORMAT_ATTRIBUTE" >config/have_format_attribute.h
 echo "hdefs[\"HAVE_FORMAT_ATTRIBUTE\"] = nil" >>configure.lua
 fi;
 rm -f $testdir/conftest conftest.c
-echo -n "checking __nonnull__ attribute..."
-echo -n "checking __nonnull__ attribute..." >> config.log
+$ECHO_N "checking __nonnull__ attribute..."
+$ECHO_N "checking __nonnull__ attribute..." >> config.log
 cat << EOT > conftest.c
 void foo(char *) __attribute__((__nonnull__ (1)));
 void foo(char *a) { }
@@ -604,8 +615,8 @@ echo "mdefs[\"HAVE_NONNULL_ATTRIBUTE\"] = \"$HAVE_NONNULL_ATTRIBUTE\"" >>configu
 echo "#undef HAVE_NONNULL_ATTRIBUTE" >config/have_nonnull_attribute.h
 echo "hdefs[\"HAVE_NONNULL_ATTRIBUTE\"] = nil" >>configure.lua
 fi;
-echo -n "checking __aligned__ attribute..."
-echo -n "checking __aligned__ attribute..." >> config.log
+$ECHO_N "checking __aligned__ attribute..."
+$ECHO_N "checking __aligned__ attribute..." >> config.log
 cat << EOT > conftest.c
 int main(int argc, char *argv[])
 {
@@ -641,8 +652,8 @@ echo "mdefs[\"HAVE_ALIGNED_ATTRIBUTE\"] = \"$HAVE_ALIGNED_ATTRIBUTE\"" >>configu
 echo "#undef HAVE_ALIGNED_ATTRIBUTE" >config/have_aligned_attribute.h
 echo "hdefs[\"HAVE_ALIGNED_ATTRIBUTE\"] = nil" >>configure.lua
 fi;
-echo -n "checking __packed__ attribute..."
-echo -n "checking __packed__ attribute..." >> config.log
+$ECHO_N "checking __packed__ attribute..."
+$ECHO_N "checking __packed__ attribute..." >> config.log
 cat << EOT > conftest.c
 int main(int argc, char *argv[])
 {
@@ -678,8 +689,8 @@ echo "mdefs[\"HAVE_PACKED_ATTRIBUTE\"] = \"$HAVE_PACKED_ATTRIBUTE\"" >>configure
 echo "#undef HAVE_PACKED_ATTRIBUTE" >config/have_packed_attribute.h
 echo "hdefs[\"HAVE_PACKED_ATTRIBUTE\"] = nil" >>configure.lua
 fi;
-echo -n "checking for long double..."
-echo -n "checking for long double..." >> config.log
+$ECHO_N "checking for long double..."
+$ECHO_N "checking for long double..." >> config.log
 cat << EOT > conftest.c
 int
 main(int argc, char *argv[])
@@ -714,8 +725,8 @@ HAVE_LONG_DOUBLE="no"
 echo "#undef HAVE_LONG_DOUBLE" >config/have_long_double.h
 echo "hdefs[\"HAVE_LONG_DOUBLE\"] = nil" >>configure.lua
 fi;
-echo -n "checking for long long..."
-echo -n "checking for long long..." >> config.log
+$ECHO_N "checking for long long..."
+$ECHO_N "checking for long long..." >> config.log
 cat << EOT > conftest.c
 int
 main(int argc, char *argv[])
@@ -751,8 +762,8 @@ HAVE_LONG_LONG="no"
 echo "#undef HAVE_LONG_LONG" >config/have_long_long.h
 echo "hdefs[\"HAVE_LONG_LONG\"] = nil" >>configure.lua
 fi;
-echo -n "checking for cygwin environment..."
-echo -n "checking for cygwin environment..." >> config.log
+$ECHO_N "checking for cygwin environment..."
+$ECHO_N "checking for cygwin environment..." >> config.log
 cat << EOT > conftest.c
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -801,8 +812,8 @@ if [ "${compile}" = "ok" ]; then
 		echo "CFLAGS=$CFLAGS" >> Makefile.config
 	fi
 fi
-echo -n "checking for Agar (http://libagar.org/)..."
-echo -n "checking for Agar (http://libagar.org/)..." >> config.log
+$ECHO_N "checking for Agar (http://libagar.org/)..."
+$ECHO_N "checking for Agar (http://libagar.org/)..." >> config.log
 AGAR_VERSION=""
 for path in `echo $PATH | sed 's/:/ /g'`; do
 	if [ -x "${path}/agar-config" ]; then
@@ -844,8 +855,8 @@ echo "hdefs[\"AGAR_CFLAGS\"] = nil" >>configure.lua
 echo "#undef AGAR_LIBS" >config/agar_libs.h
 echo "hdefs[\"AGAR_LIBS\"] = nil" >>configure.lua
 fi;
-echo -n "checking whether Agar works..."
-echo -n "checking whether Agar works..." >> config.log
+$ECHO_N "checking whether Agar works..."
+$ECHO_N "checking whether Agar works..." >> config.log
 cat << EOT > conftest.c
 #include <agar/core.h>
 #include <agar/gui.h>
@@ -885,8 +896,8 @@ echo "#undef HAVE_AGAR" >config/have_agar.h
 echo "hdefs[\"HAVE_AGAR\"] = nil" >>configure.lua
 fi;
 rm -f $testdir/conftest conftest.c
-echo -n "checking for agar-dev (http://hypertriton.com/agar-dev/)..."
-echo -n "checking for agar-dev (http://hypertriton.com/agar-dev/)..." >> config.log
+$ECHO_N "checking for agar-dev (http://hypertriton.com/agar-dev/)..."
+$ECHO_N "checking for agar-dev (http://hypertriton.com/agar-dev/)..." >> config.log
 AGAR_VERSION=""
 for path in `echo $PATH | sed 's/:/ /g'`; do
 	if [ -x "${path}/agar-config" ]; then
@@ -902,8 +913,8 @@ done
 if [ "${AGAR_VERSION}" != "" -a "${AGAR_DEV_VERSION}" != "" ]; then
 echo "yes"
 echo "yes" >> config.log
-echo -n "checking whether agar-dev works..."
-echo -n "checking whether agar-dev works..." >> config.log
+$ECHO_N "checking whether agar-dev works..."
+$ECHO_N "checking whether agar-dev works..." >> config.log
 AGAR_CFLAGS=""
 for path in `echo $PATH | sed 's/:/ /g'`; do
 	if [ -x "${path}/agar-config" ]; then
@@ -934,10 +945,13 @@ cat << EOT > conftest.c
 #include <agar/dev.h>
 
 int main(int argc, char *argv[]) {
+	AG_Object obj;
 	AG_Window *win;
 
+	AG_ObjectInitStatic(&obj, &agObjectClass);
 	DEV_InitSubsystem(0);
-	win = DEV_Browser();
+	win = DEV_Browser(&obj);
+	AG_ObjectDestroy(&obj);
 	return (0);
 }
 
@@ -990,8 +1004,8 @@ echo "hdefs[\"AGAR_DEV_CFLAGS\"] = nil" >>configure.lua
 echo "#undef AGAR_DEV_LIBS" >config/agar_dev_libs.h
 echo "hdefs[\"AGAR_DEV_LIBS\"] = nil" >>configure.lua
 fi;
-echo -n "checking for agar-net (http://hypertriton.com/agar-net/)..."
-echo -n "checking for agar-net (http://hypertriton.com/agar-net/)..." >> config.log
+$ECHO_N "checking for agar-net (http://hypertriton.com/agar-net/)..."
+$ECHO_N "checking for agar-net (http://hypertriton.com/agar-net/)..." >> config.log
 AGAR_NET_VERSION=""
 for path in `echo $PATH | sed 's/:/ /g'`; do
 	if [ -x "${path}/agar-net-config" ]; then
@@ -1013,8 +1027,8 @@ for path in `echo $PATH | sed 's/:/ /g'`; do
 		AGAR_NET_LIBS=`${path}/agar-net-config --libs`
 	fi
 done
-echo -n "checking whether agar-net works..."
-echo -n "checking whether agar-net works..." >> config.log
+$ECHO_N "checking whether agar-net works..."
+$ECHO_N "checking whether agar-net works..." >> config.log
 cat << EOT > conftest.c
 #include <agar/core.h>
 #include <agar/net.h>
@@ -1080,8 +1094,8 @@ echo "hdefs[\"AGAR_NET_CFLAGS\"] = nil" >>configure.lua
 echo "#undef AGAR_NET_LIBS" >config/agar_net_libs.h
 echo "hdefs[\"AGAR_NET_LIBS\"] = nil" >>configure.lua
 fi;
-echo -n "checking for FreeSG (http://FreeSG.org/)..."
-echo -n "checking for FreeSG (http://FreeSG.org/)..." >> config.log
+$ECHO_N "checking for FreeSG (http://FreeSG.org/)..."
+$ECHO_N "checking for FreeSG (http://FreeSG.org/)..." >> config.log
 AGAR_VERSION=""
 for path in `echo $PATH | sed 's/:/ /g'`; do
 	if [ -x "${path}/agar-config" ]; then
@@ -1097,8 +1111,8 @@ done
 if [ "${AGAR_VERSION}" != "" -a "${FREESG_VERSION}" != "" ]; then
 echo "yes"
 echo "yes" >> config.log
-echo -n "checking whether FreeSG works..."
-echo -n "checking whether FreeSG works..." >> config.log
+$ECHO_N "checking whether FreeSG works..."
+$ECHO_N "checking whether FreeSG works..." >> config.log
 AGAR_CFLAGS=""
 for path in `echo $PATH | sed 's/:/ /g'`; do
 	if [ -x "${path}/agar-config" ]; then
@@ -1128,7 +1142,7 @@ cat << EOT > conftest.c
 #include <freesg/sg.h>
 int main(int argc, char *argv[]) {
 	SG *sg;
-	sg = SG_New(NULL, "foo");
+	sg = SG_New(NULL, "foo", 0);
 	AG_ObjectDestroy(sg);
 	return (0);
 }
@@ -1182,8 +1196,8 @@ echo "hdefs[\"FREESG_CFLAGS\"] = nil" >>configure.lua
 echo "#undef FREESG_LIBS" >config/freesg_libs.h
 echo "hdefs[\"FREESG_LIBS\"] = nil" >>configure.lua
 fi;
-echo -n "checking for POSIX threads..."
-echo -n "checking for POSIX threads..." >> config.log
+$ECHO_N "checking for POSIX threads..."
+$ECHO_N "checking for POSIX threads..." >> config.log
 PTHREADS_CFLAGS=""
 PTHREADS_LIBS="-lpthread"
 cat << EOT > conftest.c
@@ -1244,8 +1258,8 @@ echo "#define PTHREADS_LIBS \"$PTHREADS_LIBS\"" >> config/pthreads_libs.h
 echo "#endif" >> config/pthreads_libs.h
 echo "hdefs[\"PTHREADS_LIBS\"] = \"$PTHREADS_LIBS\"" >>configure.lua
 else
-echo -n "checking for -pthread..."
-echo -n "checking for -pthread..." >> config.log
+$ECHO_N "checking for -pthread..."
+$ECHO_N "checking for -pthread..." >> config.log
 PTHREADS_LIBS="-pthread"
 cat << EOT > conftest.c
 #include <pthread.h>
@@ -1306,8 +1320,8 @@ echo "#endif" >> config/pthreads_libs.h
 echo "hdefs[\"PTHREADS_LIBS\"] = \"$PTHREADS_LIBS\"" >>configure.lua
 fi;
 fi;
-echo -n "checking for the X/Open Threads Extension..."
-echo -n "checking for the X/Open Threads Extension..." >> config.log
+$ECHO_N "checking for the X/Open Threads Extension..."
+$ECHO_N "checking for the X/Open Threads Extension..." >> config.log
 if [ "${SYSTEM}" = "FreeBSD" ]; then
 PTHREADS_XOPEN_CFLAGS=""
 else
@@ -1373,8 +1387,8 @@ else
 echo "#undef HAVE_PTHREADS_XOPEN" >config/have_pthreads_xopen.h
 echo "hdefs[\"HAVE_PTHREADS_XOPEN\"] = nil" >>configure.lua
 fi;
-echo -n "checking for PTHREAD_MUTEX_RECURSIVE..."
-echo -n "checking for PTHREAD_MUTEX_RECURSIVE..." >> config.log
+$ECHO_N "checking for PTHREAD_MUTEX_RECURSIVE..."
+$ECHO_N "checking for PTHREAD_MUTEX_RECURSIVE..." >> config.log
 cat << EOT > conftest.c
 #include <pthread.h>
 #include <signal.h>
@@ -1421,8 +1435,8 @@ else
 echo "#undef HAVE_PTHREAD_MUTEX_RECURSIVE" >config/have_pthread_mutex_recursive.h
 echo "hdefs[\"HAVE_PTHREAD_MUTEX_RECURSIVE\"] = nil" >>configure.lua
 fi;
-echo -n "checking for PTHREAD_MUTEX_RECURSIVE_NP..."
-echo -n "checking for PTHREAD_MUTEX_RECURSIVE_NP..." >> config.log
+$ECHO_N "checking for PTHREAD_MUTEX_RECURSIVE_NP..."
+$ECHO_N "checking for PTHREAD_MUTEX_RECURSIVE_NP..." >> config.log
 cat << EOT > conftest.c
 #include <pthread.h>
 #include <signal.h>
@@ -1468,6 +1482,50 @@ echo "hdefs[\"HAVE_PTHREAD_MUTEX_RECURSIVE_NP\"] = \"$HAVE_PTHREAD_MUTEX_RECURSI
 else
 echo "#undef HAVE_PTHREAD_MUTEX_RECURSIVE_NP" >config/have_pthread_mutex_recursive_np.h
 echo "hdefs[\"HAVE_PTHREAD_MUTEX_RECURSIVE_NP\"] = nil" >>configure.lua
+fi;
+$ECHO_N "checking for the getopt() function..."
+$ECHO_N "checking for the getopt() function..." >> config.log
+cat << EOT > conftest.c
+#include <unistd.h>
+
+int
+main(int argc, char *argv[])
+{
+	int c, x;
+	while ((c = getopt(argc, argv, "foo")) != -1) {
+		extern char *optarg;
+		extern int optind, opterr, optopt;
+		if (optarg != NULL) { x = 1; }
+		if (optind > 0) { x = 2; }
+		if (opterr > 0) { x = 3; }
+		if (optopt > 0) { x = 4; }
+	}
+	return (0);
+}
+
+EOT
+compile="ok"
+echo "$CC $CFLAGS $TEST_CFLAGS -o $testdir/conftest conftest.c" >>config.log
+$CC $CFLAGS $TEST_CFLAGS -o $testdir/conftest conftest.c 2>>config.log
+if [ $? != 0 ]; then
+	echo "-> failed ($?)" >> config.log
+	compile="failed"
+fi
+rm -f $testdir/conftest conftest.c
+if [ "${compile}" = "ok" ]; then
+echo "yes"
+echo "yes" >> config.log
+HAVE_GETOPT="yes"
+echo "#ifndef HAVE_GETOPT" > config/have_getopt.h
+echo "#define HAVE_GETOPT \"$HAVE_GETOPT\"" >> config/have_getopt.h
+echo "#endif" >> config/have_getopt.h
+echo "hdefs[\"HAVE_GETOPT\"] = \"$HAVE_GETOPT\"" >>configure.lua
+else
+echo "no"
+echo "no" >> config.log
+HAVE_GETOPT="no"
+echo "#undef HAVE_GETOPT" >config/have_getopt.h
+echo "hdefs[\"HAVE_GETOPT\"] = nil" >>configure.lua
 fi;
 if [ "${HAVE_AGAR}" = "no" ]
  then
