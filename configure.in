@@ -13,7 +13,7 @@ C_NO_SECURE_WARNINGS()
 #C_FATAL_WARNINGS()
 
 HDEFINE(VERSION, "01112008")
-HDEFINE(RELEASE, "Worlds of Glass")
+HDEFINE(RELEASE, "Le Visage du Bouc dans le Miroir")
 
 CHECK(cc)
 CHECK(agar, 1.3)
