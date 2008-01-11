@@ -288,7 +288,11 @@ OpenPartFromPLY(AG_Event *event)
 
 	fprintf(stderr, "Loading %s (%s)...", path, ft->descr);
 
-	part = AG_ObjectNew(&vfsRoot, "Part Rendering", &cadPartClass);
+	part = Malloc(sizeof(CAD_Part));
+	AG_ObjectInit(part, &cadPartClass);
+	AG_ObjectSetName(part, "Imported object");
+	AGOBJECT(part)->flags |= AG_OBJECT_RESIDENT;
+	AG_ObjectAttach(&vfsRoot, part);
 
 	if (AG_FileOptionInt(ft, "ply.vtxnormals"))
 		flags |= SG_PLY_LOAD_VTX_NORMALS;
