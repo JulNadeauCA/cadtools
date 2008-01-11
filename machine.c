@@ -341,13 +341,13 @@ Edit(void *obj)
 	ntab = AG_NotebookAddTab(nb, _("Controller"), AG_BOX_VERT);
 	{
 		tb = AG_TextboxNew(ntab, AG_TEXTBOX_HFILL, _("Hostname: "));
-		AG_WidgetBindString(tb, "string", ma->host, sizeof(ma->host));
+		AG_TextboxBindUTF8(tb, ma->host, sizeof(ma->host));
 		tb = AG_TextboxNew(ntab, AG_TEXTBOX_HFILL, _("Port: "));
-		AG_WidgetBindString(tb, "string", ma->port, sizeof(ma->port));
+		AG_TextboxBindUTF8(tb, ma->port, sizeof(ma->port));
 		tb = AG_TextboxNew(ntab, AG_TEXTBOX_HFILL, _("Username: "));
-		AG_WidgetBindString(tb, "string", ma->user, sizeof(ma->user));
+		AG_TextboxBindUTF8(tb, ma->user, sizeof(ma->user));
 		tb = AG_TextboxNew(ntab, AG_TEXTBOX_HFILL, _("Password: "));
-		AG_WidgetBindString(tb, "string", ma->pass, sizeof(ma->pass));
+		AG_TextboxBindUTF8(tb, ma->pass, sizeof(ma->pass));
 		AG_TextboxSetPassword(tb, 1);
 
 		AG_SeparatorNewHoriz(ntab);
