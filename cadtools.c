@@ -28,12 +28,15 @@
  */
 
 #include <config/have_agar_dev.h>
+#include <config/have_getopt.h>
 
 #include <agar/core.h>
 #include <agar/gui.h>
 #ifdef HAVE_AGAR_DEV
 #include <agar/dev.h>
 #endif
+
+#include <config/debug.h>
 
 #include <string.h>
 
@@ -43,8 +46,11 @@
 
 #include "cadtools.h"
 
-static AG_Menu *appMenu = NULL;
+AG_Menu *appMenu = NULL;
+AG_Object vfsRoot;
+
 static void *objFocus = NULL;
+static AG_Mutex objLock;
 
 static void
 RegisterClasses(void)
@@ -104,7 +110,8 @@ static void
 WindowGainedFocus(AG_Event *event)
 {
 	AG_Object *obj = AG_PTR(1);
-
+	
+	AG_MutexLock(&objLock);
 	if (AG_ObjectIsClass(obj, "SK:*") ||
 	    AG_ObjectIsClass(obj, "CAD_Part:*") ||
 	    AG_ObjectIsClass(obj, "CAM_Program:*")) {
@@ -112,19 +119,21 @@ WindowGainedFocus(AG_Event *event)
 	} else {
 		objFocus = NULL;
 	}
+	AG_MutexUnlock(&objLock);
 }
 
 static void
 WindowLostFocus(AG_Event *event)
 {
+	AG_MutexLock(&objLock);
 	objFocus = NULL;
+	AG_MutexUnlock(&objLock);
 }
 
 AG_Window *
 CAD_CreateEditionWindow(void *p)
 {
 	AG_Object *obj = p;
-	extern AG_Menu *agAppMenu;
 	AG_Window *win;
 
 	win = obj->cls->edit(obj);
@@ -141,7 +150,7 @@ NewObject(AG_Event *event)
 {
 	AG_ObjectClass *cls = AG_PTR(1);
 
-	CAD_CreateEditionWindow(AG_ObjectNew(agWorld, NULL, cls));
+	CAD_CreateEditionWindow(AG_ObjectNew(&vfsRoot, NULL, cls));
 }
 
 static void
@@ -173,7 +182,7 @@ OpenSketch(AG_Event *event)
 	char *path = AG_STRING(1);
 	AG_Object *obj;
 
-	obj = AG_ObjectNew(agWorld, NULL, &skClass);
+	obj = AG_ObjectNew(&vfsRoot, NULL, &skClass);
 	if (AG_ObjectLoadFromFile(obj, path) == -1) {
 		AG_TextMsgFromError();
 		AG_ObjectDetach(obj);
@@ -197,13 +206,14 @@ OpenDlg(AG_Event *event)
 
 	hPane = AG_PaneNewHoriz(win, AG_PANE_EXPAND);
 	fd = AG_FileDlgNewMRU(hPane->div[0], "cadtools.mru.parts",
-	    AG_FILEDLG_LOAD|AG_FILEDLG_CLOSEWIN|AG_FILEDLG_EXPAND);
+	    AG_FILEDLG_LOAD|AG_FILEDLG_ASYNC|
+	    AG_FILEDLG_EXPAND);
 	AG_FileDlgSetOptionContainer(fd, hPane->div[1]);
 
 	AG_FileDlgAddType(fd, _("cadtools sketch"), "*.sk",
 	    OpenSketch, NULL);
-
 	CAD_PartOpenMenu(fd);
+
 	AG_WindowShow(win);
 	AG_WindowSetGeometry(win, AGWIDGET(win)->x-100, AGWIDGET(win)->y,
 	                          AGWIDGET(win)->w+200, AGWIDGET(win)->h);
@@ -309,7 +319,7 @@ Quit(AG_Event *event)
 	}
 	agTerminating = 1;
 
-	AGOBJECT_FOREACH_CHILD(obj, agWorld, ag_object) {
+	AGOBJECT_FOREACH_CHILD(obj, &vfsRoot, ag_object) {
 		if (AG_ObjectChanged(obj))
 			break;
 	}
@@ -353,6 +363,7 @@ FileMenu(AG_Event *event)
 	AG_MenuActionKb(m, "Open...", agIconLoad.s, SDLK_o, KMOD_CTRL,
 	    OpenDlg, NULL);
 
+	AG_MutexLock(&objLock);
 	if (objFocus == NULL) { AG_MenuDisable(m); }
 
 	AG_MenuActionKb(m, "Save", agIconSave.s, SDLK_s, KMOD_CTRL,
@@ -361,6 +372,7 @@ FileMenu(AG_Event *event)
 	    SaveAsDlg, "%p", objFocus);
 	
 	if (objFocus == NULL) { AG_MenuEnable(m); }
+	AG_MutexUnlock(&objLock);
 	
 	AG_MenuSeparator(m);
 
@@ -375,7 +387,7 @@ FileMenu(AG_Event *event)
 
 		AG_MenuSeparator(node);
 
-		AGOBJECT_FOREACH_CLASS(mach, agWorld, cam_machine,
+		AGOBJECT_FOREACH_CLASS(mach, &vfsRoot, cam_machine,
 		    "CAM_Machine:*") {
 			AG_MenuAction(node, AGOBJECT(mach)->name, agIconGear.s,
 			    EditMachine, "%p", mach);
@@ -406,15 +418,14 @@ EditMenu(AG_Event *event)
 {
 	AG_MenuItem *m = AG_SENDER();
 	
+	AG_MutexLock(&objLock);
 	if (objFocus == NULL) { AG_MenuDisable(m); }
-
 	AG_MenuActionKb(m, "Undo", NULL, SDLK_z, KMOD_CTRL,
 	    Undo, "%p", objFocus);
-	
 	AG_MenuActionKb(m, "Redo", NULL, SDLK_r, KMOD_CTRL,
 	    Redo, "%p", objFocus);
-
 	if (objFocus == NULL) { AG_MenuEnable(m); }
+	AG_MutexUnlock(&objLock);
 }
 
 static void
@@ -424,22 +435,23 @@ FeaturesMenu(AG_Event *event)
 	AG_MenuItem *m = AG_SENDER();
 	CAD_Part *part;
 	
-	if (objFocus == NULL) {
-		return;
-	}
-	if (AG_ObjectIsClass(objFocus, "CAD_Part:*")) {
-		CAD_Part *part = objFocus;
+	AG_MutexLock(&objLock);
+	if (objFocus != NULL) {
+		if (AG_ObjectIsClass(objFocus, "CAD_Part:*")) {
+			CAD_Part *part = objFocus;
 
-		AG_MenuAction(m, _("Extruded boss/base"), NULL,
-		    CAD_PartInsertFeature, "%p,%p,%s", part,
-		    &cadExtrudedBossClass, _("Extrusion"));
+			AG_MenuAction(m, _("Extruded boss/base"), NULL,
+			    CAD_PartInsertFeature, "%p,%p,%s", part,
+			    &cadExtrudedBossClass, _("Extrusion"));
+		}
 	}
+	AG_MutexUnlock(&objLock);
 }
 
 int
 main(int argc, char *argv[])
 {
-	int c, i, fps = -1, debug = 0;
+	int c, i, fps = -1;
 	char *s;
 
 	if (AG_InitCore("cadtools", AG_CORE_VERBOSE) == -1) {
@@ -447,12 +459,15 @@ main(int argc, char *argv[])
 		return (1);
 	}
 #ifdef HAVE_GETOPT
-	while ((c = getopt(argc, argv, "?dvfFbBt:T:r:")) != -1) {
+	while ((c = getopt(argc, argv, "?dDvfFbBt:T:r:")) != -1) {
 		extern char *optarg;
 
 		switch (c) {
 		case 'd':
-			debug = 1;
+			agDebugLvl = 5;
+			break;
+		case 'D':
+			agDebugLvl = 10;
 			break;
 		case 'v':
 			exit(0);
@@ -479,7 +494,7 @@ main(int argc, char *argv[])
 			break;
 		case '?':
 		default:
-			printf("%s [-vfFbB] [-r fps] [-t fontspec] "
+			printf("%s [-dDvfFbB] [-r fps] [-t fontspec] "
 			       "[-T font-path]\n", agProgName);
 			exit(0);
 		}
@@ -496,10 +511,12 @@ main(int argc, char *argv[])
 	AG_BindGlobalKey(SDLK_ESCAPE, KMOD_NONE, AG_Quit);
 	AG_BindGlobalKey(SDLK_F8, KMOD_NONE, AG_ViewCapture);
 
-	/* Register our classes and load the last VFS state. */
+	AG_ObjectInitStatic(&vfsRoot, NULL);
+	AG_ObjectSetName(&vfsRoot, "Editor VFS");
+	AG_MutexInit(&objLock);
+
+	/* Register our classes. */
 	RegisterClasses();
-	if (AG_ObjectLoad(agWorld) == -1)
-		AG_ObjectSave(agWorld);		/* Assume initial run */
 
 	/* Create the application menu. */ 
 	appMenu = AG_MenuNewGlobal(0);
@@ -507,14 +524,15 @@ main(int argc, char *argv[])
 	AG_MenuDynamicItem(appMenu->root, "Edit", NULL, EditMenu, NULL);
 	AG_MenuDynamicItem(appMenu->root, "Features", NULL, FeaturesMenu, NULL);
 
-#ifdef HAVE_AGAR_DEV
-	if (debug) {
-		DEV_InitSubsystem(0);
-		DEV_Browser();
-		DEV_ToolMenu(AG_MenuNode(appMenu->root, "Debug", NULL));
+#if defined(HAVE_AGAR_DEV) && defined(DEBUG)
+	DEV_InitSubsystem(0);
+	if (agDebugLvl >= 5) {
+		DEV_Browser(&vfsRoot);
 	}
+	DEV_ToolMenu(AG_MenuNode(appMenu->root, "Debug", NULL));
 #endif
 	AG_EventLoop();
+	AG_ObjectDestroy(&vfsRoot);
 	AG_Destroy();
 	return (0);
 }

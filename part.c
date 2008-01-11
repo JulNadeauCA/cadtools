@@ -43,20 +43,20 @@ Init(void *obj)
 
 	part->descr[0] = '\0';
 	part->flags = 0;
-	part->sg = SG_New(part, "Rendering");
-	part->so = SG_ObjectNew(part->sg->root, "part");
+	part->sg = SG_New(part, "Rendering", 0);
+	part->so = SG_ObjectNew(part->sg->root, "Part Object");
 
 	cam = SG_CameraNew(part->sg->root, "CameraFront");
 	SG_Translate3(cam, 0.0, 0.0, 5.0);
 
 	cam = SG_CameraNew(part->sg->root, "CameraLeft");
-	SG_Translate3(cam, -5.0, 0.0, -5.0);
-	SG_Rotatevd(cam, -90.0, VecJ());
+	SG_Translate3(cam, -5.0, 0.0, 0.0);
+	SG_Rotatevd(cam, 90.0, VecJ());
 	
 	cam = SG_CameraNew(part->sg->root, "CameraTop");
-	SG_Translate3(cam, 0.0, 5.0, -5.0);
-	SG_Rotatevd(cam, -90.0, VecI());
-
+	SG_Translate3(cam, 0.0, 5.0, -0.0);
+	SG_Rotatevd(cam, 90.0, VecI());
+#if 0
 	lt = SG_LightNew(part->sg->root, "Light0");
 	SG_Translate3(lt, -6.0, 6.0, -6.0);
 	lt->Kc = 0.5;
@@ -66,6 +66,7 @@ Init(void *obj)
 	SG_Translate3(lt, 6.0, 6.0, 6.0);
 	lt->Kc = 0.25;
 	lt->Kl = 0.05;
+#endif
 }
 
 static void
@@ -133,9 +134,9 @@ PollFeatures(AG_Event *event)
 	CAD_Part *part = AG_PTR(1);
 
 	AG_TlistClear(tl);
-	AG_LockLinkage();
+	AG_LockVFS(part);
 	FindFeatures(tl, AGOBJECT(part), 0);
-	AG_UnlockLinkage();
+	AG_UnlockVFS(part);
 	AG_TlistRestore(tl);
 }
 
@@ -161,8 +162,8 @@ ShowCameraSettings(AG_Event *event)
 
 	win = AG_WindowNew(0);
 	AG_WindowSetCaption(win, _("Camera settings (%s)"),
-	    SGNODE(sgv->cam)->name);
-	SG_CameraEdit(sgv->cam, AGWIDGET(win), sgv);
+	    AGOBJECT(sgv->cam)->name);
+	AG_ObjectAttach(win, SGNODE_OPS(sgv->cam)->edit(sgv->cam, sgv));
 	AG_WindowShow(win);
 }
 
@@ -181,7 +182,7 @@ ShowLightSettings(AG_Event *event)
 
 	win = AG_WindowNew(0);
 	AG_WindowSetCaption(win, _("Light settings"));
-	SG_LightEdit(lt, AGWIDGET(win), sgv);
+	AG_ObjectAttach(win, SGNODE_OPS(lt)->edit(lt, sgv));
 	AG_WindowShow(win);
 }
 
@@ -264,7 +265,7 @@ OpenPartNative(AG_Event *event)
 	char *path = AG_STRING(2);
 	AG_Object *obj;
 
-	obj = AG_ObjectNew(agWorld, NULL, &cadPartClass);
+	obj = AG_ObjectNew(&vfsRoot, NULL, &cadPartClass);
 	if (AG_ObjectLoadFromFile(obj, path) == -1) {
 		AG_TextMsgFromError();
 		AG_ObjectDetach(obj);
@@ -279,13 +280,15 @@ OpenPartNative(AG_Event *event)
 static void
 OpenPartFromPLY(AG_Event *event)
 {
+	AG_Object *fd = AG_SELF();
 	char *path = AG_STRING(1);
 	AG_FileType *ft = AG_PTR(2);
 	CAD_Part *part;
-	SG_Object *so;
 	Uint flags = 0;
 
-	part = AG_ObjectNew(agWorld, NULL, &cadPartClass);
+	fprintf(stderr, "Loading %s (%s)...", path, ft->descr);
+
+	part = AG_ObjectNew(&vfsRoot, "Part Rendering", &cadPartClass);
 
 	if (AG_FileOptionInt(ft, "ply.vtxnormals"))
 		flags |= SG_PLY_LOAD_VTX_NORMALS;
@@ -296,16 +299,19 @@ OpenPartFromPLY(AG_Event *event)
 	if (AG_FileOptionInt(ft, "ply.dups"))
 		flags |= SG_PLY_DUP_VERTICES;
 
-	so = SG_ObjectNew(NULL, "Imported mesh");
-	if (SG_ObjectLoadPLY(so, path, flags) == -1) {
-		AG_TextMsg(AG_MSG_ERROR, "%s: %s", path, AG_GetError());
-		SG_ObjectDestroy(so);
-		return;
+	if (SG_ObjectLoadPLY(part->so, path, flags) == -1) {
+		goto fail;
 	}
-	SG_NodeAttach(part->sg->root, so);
-	SG_UniScale(so, AG_FileOptionFlt(ft,"ply.scale"));
-	SG_ObjectNormalize(so);
+	SG_UniScale(part->so, AG_FileOptionFlt(ft,"ply.scale"));
+#if 0
+	SG_ObjectNormalize(part->so);
+#endif
 	CAD_CreateEditionWindow(part);
+	fprintf(stderr, "Done\n");
+	return;
+fail:
+	AG_TextMsg(AG_MSG_ERROR, "%s: %s", path, AG_GetError());
+	AG_ObjectDestroy(part->so);
 }
 
 void

@@ -59,6 +59,10 @@ typedef unsigned long Ulong;
 
 #include "begin_code.h"
 __BEGIN_DECLS
+struct ag_menu;
+extern struct ag_menu *appMenu;
+extern AG_Object vfsRoot;
+
 void       CAD_SetArchivePath(void *, const char *);
 AG_Window *CAD_CreateEditionWindow(void *);
 __END_DECLS

@@ -61,7 +61,7 @@ Attached(AG_Event *event)
 	AG_ThreadCreate(&ma->thNet, MachineThread, ma);
 	AG_ThreadCreate(&ma->thInact, InactivityCheck, ma);
 	
-	ma->model = SG_New(ma, "Geometric model");
+	ma->model = SG_New(ma, "Geometric model", 0);
 	{
 		lt = SG_LightNew(ma->model->root, "Light0");
 		SG_Translate3(lt, -6.0, 6.0, -6.0);
@@ -258,8 +258,8 @@ ShowCameraSettings(AG_Event *event)
 
 	win = AG_WindowNew(0);
 	AG_WindowSetCaption(win, _("Camera settings (%s)"),
-	    SGNODE(sgv->cam)->name);
-	SG_CameraEdit(sgv->cam, AGWIDGET(win), sgv);
+	    AGOBJECT(sgv->cam)->name);
+	AG_ObjectAttach(win, SGNODE_OPS(sgv->cam)->edit(sgv->cam, sgv));
 	AG_WindowShow(win);
 }
 
@@ -278,7 +278,7 @@ ShowLightSettings(AG_Event *event)
 
 	win = AG_WindowNew(0);
 	AG_WindowSetCaption(win, _("Light settings"));
-	SG_LightEdit(lt, AGWIDGET(win), sgv);
+	AG_ObjectAttach(win, SGNODE_OPS(lt)->edit(lt, sgv));
 	AG_WindowShow(win);
 }
 
