@@ -206,8 +206,7 @@ OpenDlg(AG_Event *event)
 
 	hPane = AG_PaneNewHoriz(win, AG_PANE_EXPAND);
 	fd = AG_FileDlgNewMRU(hPane->div[0], "cadtools.mru.parts",
-	    AG_FILEDLG_LOAD|AG_FILEDLG_ASYNC|
-	    AG_FILEDLG_EXPAND);
+	    AG_FILEDLG_LOAD|AG_FILEDLG_ASYNC|AG_FILEDLG_EXPAND);
 	AG_FileDlgSetOptionContainer(fd, hPane->div[1]);
 
 	AG_FileDlgAddType(fd, _("cadtools sketch"), "*.sk",
@@ -463,12 +462,14 @@ main(int argc, char *argv[])
 		extern char *optarg;
 
 		switch (c) {
+# ifdef DEBUG
 		case 'd':
 			agDebugLvl = 5;
 			break;
 		case 'D':
 			agDebugLvl = 10;
 			break;
+# endif
 		case 'v':
 			exit(0);
 		case 'f':
