@@ -7,12 +7,6 @@
 
 #ifdef _CADTOOLS_INTERNAL
 
-#include <agar/core/strlcpy.h>
-#include <agar/core/strlcat.h>
-
-#define Strlcpy AG_Strlcpy
-#define Strlcat AG_Strlcat
-
 #include <agar/config/_mk_have_unsigned_typedefs.h>
 #ifndef _MK_HAVE_UNSIGNED_TYPEDEFS
 #define _MK_HAVE_UNSIGNED_TYPEDEFS
