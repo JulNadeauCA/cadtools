@@ -125,15 +125,15 @@ Edit(void *obj)
 	ntab = AG_NotebookAddTab(nb, _("Specs"), AG_BOX_VERT);
 	{
 		num = AG_NumericalNew(ntab, 0, "mm", _("Table length: "));
-		SG_WidgetBindReal(num, "value", &mill->lenTable);
+		M_WidgetBindReal(num, "value", &mill->lenTable);
 		num = AG_NumericalNew(ntab, 0, "mm", _("Table width: "));
-		SG_WidgetBindReal(num, "value", &mill->wTable);
+		M_WidgetBindReal(num, "value", &mill->wTable);
 		num = AG_NumericalNew(ntab, 0, "mm", _("X travel: "));
-		SG_WidgetBindReal(num, "value", &mill->xTravel);
+		M_WidgetBindReal(num, "value", &mill->xTravel);
 		num = AG_NumericalNew(ntab, 0, "mm", _("Y travel: "));
-		SG_WidgetBindReal(num, "value", &mill->yTravel);
+		M_WidgetBindReal(num, "value", &mill->yTravel);
 		num = AG_NumericalNew(ntab, 0, "mm", _("Z travel: "));
-		SG_WidgetBindReal(num, "value", &mill->zTravel);
+		M_WidgetBindReal(num, "value", &mill->zTravel);
 	}
 	ntab = AG_NotebookAddTab(nb, _("Spindle"), AG_BOX_VERT);
 	{
@@ -142,7 +142,7 @@ Edit(void *obj)
 		num = AG_NumericalNew(ntab, 0, NULL, _("Maximum RPM: "));
 		AG_WidgetBindInt(num, "value", &mill->spMaxRPM);
 		num = AG_NumericalNew(ntab, 0, "HP", _("Spindle power: "));
-		SG_WidgetBindReal(num, "value", &mill->spPower);
+		M_WidgetBindReal(num, "value", &mill->spPower);
 	}
 
 	return AG_WidgetParentWindow(nb);

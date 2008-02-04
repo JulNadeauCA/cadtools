@@ -124,33 +124,33 @@ Edit(void *obj)
 	ntab = AG_NotebookAddTab(nb, _("Specs"), AG_BOX_VERT);
 	{
 		num = AG_NumericalNew(ntab, 0, "mm", _("Swing over bed: "));
-		SG_WidgetBindReal(num, "value", &lathe->bedSwing);
+		M_WidgetBindReal(num, "value", &lathe->bedSwing);
 		num = AG_NumericalNew(ntab, 0, "mm", _("Swing over "
 		                                       "cross-slide: "));
-		SG_WidgetBindReal(num, "value", &lathe->csSwing);
+		M_WidgetBindReal(num, "value", &lathe->csSwing);
 		num = AG_NumericalNew(ntab, 0, "mm", _("Cross-slide travel: "));
-		SG_WidgetBindReal(num, "value", &lathe->csTravel);
+		M_WidgetBindReal(num, "value", &lathe->csTravel);
 		num = AG_NumericalNew(ntab, 0, "mm", _("Carriage travel: "));
-		SG_WidgetBindReal(num, "value", &lathe->carrTravel);
+		M_WidgetBindReal(num, "value", &lathe->carrTravel);
 		num = AG_NumericalNew(ntab, 0, "mm", _("Compound travel: "));
-		SG_WidgetBindReal(num, "value", &lathe->compTravel);
+		M_WidgetBindReal(num, "value", &lathe->compTravel);
 		num = AG_NumericalNew(ntab, 0, "mm", _("Distance between "
 		                                      "centers: "));
-		SG_WidgetBindReal(num, "value", &lathe->distCenters);
+		M_WidgetBindReal(num, "value", &lathe->distCenters);
 		num = AG_NumericalNew(ntab, 0, "mm", _("Tailstock travel: "));
-		SG_WidgetBindReal(num, "value", &lathe->tsTravel);
+		M_WidgetBindReal(num, "value", &lathe->tsTravel);
 	}
 	ntab = AG_NotebookAddTab(nb, _("Spindle"), AG_BOX_VERT);
 	{
 		num = AG_NumericalNew(ntab, 0, "mm", _("Spindle bore "
 		                                       "diameter: "));
-		SG_WidgetBindReal(num, "value", &lathe->spBore);
+		M_WidgetBindReal(num, "value", &lathe->spBore);
 		num = AG_NumericalNew(ntab, 0, NULL, _("Minimum RPM: "));
 		AG_WidgetBindInt(num, "value", &lathe->spMinRPM);
 		num = AG_NumericalNew(ntab, 0, NULL, _("Maximum RPM: "));
 		AG_WidgetBindInt(num, "value", &lathe->spMaxRPM);
 		num = AG_NumericalNew(ntab, 0, "HP", _("Spindle power: "));
-		SG_WidgetBindReal(num, "value", &lathe->spPower);
+		M_WidgetBindReal(num, "value", &lathe->spPower);
 	}
 	return AG_WidgetParentWindow(nb);
 }
