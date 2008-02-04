@@ -20,15 +20,15 @@ typedef struct cam_mill {
 #define CAM_MILL_YLIMIT			0x100	/* Y limit switches */
 #define CAM_MILL_ZLIMIT			0x200	/* Z limit switches */
 
-	SG_Real lenTable;		/* Table length */
-	SG_Real wTable;			/* Table width */
-	SG_Real xTravel;		/* Longitudinal travel */
-	SG_Real yTravel;		/* Cross-slide travel */
-	SG_Real zTravel;		/* Cross-slide travel */
+	M_Real lenTable;		/* Table length */
+	M_Real wTable;			/* Table width */
+	M_Real xTravel;			/* Longitudinal travel */
+	M_Real yTravel;			/* Cross-slide travel */
+	M_Real zTravel;			/* Cross-slide travel */
 
 	int	spMinRPM;		/* Minimum spindle RPM */
 	int	spMaxRPM;		/* Maximum spindle RPM */
-	SG_Real	spPower;		/* Spindle power (watts) */
+	M_Real	spPower;		/* Spindle power (watts) */
 	CAM_Chuck *spChuck;		/* Spindle chuck model */
 } CAM_Mill;
 

@@ -63,15 +63,15 @@ Load(void *obj, AG_DataSource *buf, const AG_Version *ver)
 	
 	mill->flags = (Uint)AG_ReadUint32(buf);
 
-	mill->lenTable = SG_ReadReal(buf);
-	mill->wTable = SG_ReadReal(buf);
-	mill->xTravel = SG_ReadReal(buf);
-	mill->yTravel = SG_ReadReal(buf);
-	mill->zTravel = SG_ReadReal(buf);
+	mill->lenTable = M_ReadReal(buf);
+	mill->wTable = M_ReadReal(buf);
+	mill->xTravel = M_ReadReal(buf);
+	mill->yTravel = M_ReadReal(buf);
+	mill->zTravel = M_ReadReal(buf);
 	
 	mill->spMinRPM = (int)AG_ReadUint32(buf);
 	mill->spMaxRPM = (int)AG_ReadUint32(buf);
-	mill->spPower = SG_ReadReal(buf);
+	mill->spPower = M_ReadReal(buf);
 	mill->spChuck = NULL;
 	return (0);
 }
@@ -83,15 +83,15 @@ Save(void *obj, AG_DataSource *buf)
 	
 	AG_WriteUint32(buf, (Uint32)mill->flags);
 
-	SG_WriteReal(buf, mill->lenTable);
-	SG_WriteReal(buf, mill->wTable);
-	SG_WriteReal(buf, mill->xTravel);
-	SG_WriteReal(buf, mill->yTravel);
-	SG_WriteReal(buf, mill->zTravel);
+	M_WriteReal(buf, mill->lenTable);
+	M_WriteReal(buf, mill->wTable);
+	M_WriteReal(buf, mill->xTravel);
+	M_WriteReal(buf, mill->yTravel);
+	M_WriteReal(buf, mill->zTravel);
 
 	AG_WriteUint32(buf, mill->spMinRPM);
 	AG_WriteUint32(buf, mill->spMaxRPM);
-	SG_WriteReal(buf, mill->spPower);
+	M_WriteReal(buf, mill->spPower);
 	return (0);
 }
 

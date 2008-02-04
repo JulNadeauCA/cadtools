@@ -37,7 +37,7 @@ static void
 Init(void *obj)
 {
 	CAD_Part *part = obj;
-	SG_Real i;
+	M_Real i;
 	SG_Light *lt;
 	SG_Camera *cam;
 

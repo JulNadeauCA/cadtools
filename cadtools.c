@@ -457,6 +457,9 @@ main(int argc, char *argv[])
 		fprintf(stderr, "%s\n", AG_GetError());
 		return (1);
 	}
+	
+	AG_TextParseFontSpec("Vera.ttf:15");
+
 #ifdef HAVE_GETOPT
 	while ((c = getopt(argc, argv, "?dDvfFbBt:T:r:")) != -1) {
 		extern char *optarg;
@@ -502,7 +505,7 @@ main(int argc, char *argv[])
 	}
 #endif /* HAVE_GETOPT */
 
-	if (AG_InitVideo(800,600,32,AG_VIDEO_OPENGL|AG_VIDEO_RESIZABLE) == -1) {
+	if (AG_InitVideo(1024,768,32,AG_VIDEO_OPENGL|AG_VIDEO_RESIZABLE) == -1) {
 		fprintf(stderr, "%s\n", AG_GetError());
 		return (-1);
 	}

@@ -14,20 +14,20 @@ typedef struct cam_lathe {
 #define CAM_LATHE_SYNC_TO_SPINDLE	0x08	/* Sync program with IRQ from
 						   spindle tachometer */
 
-	SG_Real	bedSwing;		/* Swing over Bed */
-	SG_Real	csSwing;		/* Swing over Cross Slide */
-	SG_Real	csTravel;		/* Cross Slide travel */
-	SG_Real	carrTravel;		/* Carriage travel */
-	SG_Real compTravel;		/* Compound travel */
-	SG_Real	distCenters;		/* Distance between centers */
+	M_Real bedSwing;		/* Swing over Bed */
+	M_Real csSwing;		/* Swing over Cross Slide */
+	M_Real csTravel;		/* Cross Slide travel */
+	M_Real carrTravel;		/* Carriage travel */
+	M_Real compTravel;		/* Compound travel */
+	M_Real distCenters;		/* Distance between centers */
 
-	SG_Real	spBore;			/* Spindle thru-hole diameter */
-	int	spMinRPM;		/* Minimum spindle RPM */
-	int	spMaxRPM;		/* Maximum spindle RPM */
-	SG_Real	spPower;		/* Spindle power (watts) */
+	M_Real     spBore;		/* Spindle thru-hole diameter */
+	int        spMinRPM;		/* Minimum spindle RPM */
+	int        spMaxRPM;		/* Maximum spindle RPM */
+	M_Real     spPower;		/* Spindle power (watts) */
 	CAM_Chuck *spChuck;		/* Spindle chuck model */
 
-	SG_Real   tsTravel;		/* Tailstock spindle travel */
+	M_Real     tsTravel;		/* Tailstock spindle travel */
 	CAM_Chuck *tsChuck;		/* Tailstock chuck model */
 } CAM_Lathe;
 

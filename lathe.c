@@ -64,18 +64,18 @@ Load(void *obj, AG_DataSource *buf, const AG_Version *ver)
 	CAM_Lathe *lathe = obj;
 
 	lathe->flags = (Uint)AG_ReadUint32(buf);
-	lathe->bedSwing = SG_ReadReal(buf);
-	lathe->csSwing = SG_ReadReal(buf);
-	lathe->csTravel = SG_ReadReal(buf);
-	lathe->carrTravel = SG_ReadReal(buf);
-	lathe->compTravel = SG_ReadReal(buf);
-	lathe->distCenters = SG_ReadReal(buf);
-	lathe->spBore = SG_ReadReal(buf);
+	lathe->bedSwing = M_ReadReal(buf);
+	lathe->csSwing = M_ReadReal(buf);
+	lathe->csTravel = M_ReadReal(buf);
+	lathe->carrTravel = M_ReadReal(buf);
+	lathe->compTravel = M_ReadReal(buf);
+	lathe->distCenters = M_ReadReal(buf);
+	lathe->spBore = M_ReadReal(buf);
 	lathe->spMinRPM = (int)AG_ReadUint32(buf);
 	lathe->spMaxRPM = (int)AG_ReadUint32(buf);
-	lathe->spPower = SG_ReadReal(buf);
+	lathe->spPower = M_ReadReal(buf);
 	lathe->spChuck = NULL;
-	lathe->tsTravel = SG_ReadReal(buf);
+	lathe->tsTravel = M_ReadReal(buf);
 	lathe->tsChuck = NULL;
 	return (0);
 }
@@ -86,17 +86,17 @@ Save(void *obj, AG_DataSource *buf)
 	CAM_Lathe *lathe = obj;
 
 	AG_WriteUint32(buf, (Uint32)lathe->flags);
-	SG_WriteReal(buf, lathe->bedSwing);
-	SG_WriteReal(buf, lathe->csSwing);
-	SG_WriteReal(buf, lathe->csTravel);
-	SG_WriteReal(buf, lathe->carrTravel);
-	SG_WriteReal(buf, lathe->compTravel);
-	SG_WriteReal(buf, lathe->distCenters);
-	SG_WriteReal(buf, lathe->spBore);
+	M_WriteReal(buf, lathe->bedSwing);
+	M_WriteReal(buf, lathe->csSwing);
+	M_WriteReal(buf, lathe->csTravel);
+	M_WriteReal(buf, lathe->carrTravel);
+	M_WriteReal(buf, lathe->compTravel);
+	M_WriteReal(buf, lathe->distCenters);
+	M_WriteReal(buf, lathe->spBore);
 	AG_WriteUint32(buf, lathe->spMinRPM);
 	AG_WriteUint32(buf, lathe->spMaxRPM);
-	SG_WriteReal(buf, lathe->spPower);
-	SG_WriteReal(buf, lathe->tsTravel);
+	M_WriteReal(buf, lathe->spPower);
+	M_WriteReal(buf, lathe->tsTravel);
 	return (0);
 }
 

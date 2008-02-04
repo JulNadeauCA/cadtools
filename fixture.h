@@ -7,12 +7,12 @@
 
 /* Circular chuck model */
 typedef struct cam_chuck {
-	SG_Real oallDia;		/* Overall diameter */
-	SG_Real minDia;			/* Minimum part diameter */
-	SG_Real maxDia;			/* Maximum part diameter */
-	SG_Real	oallDepth;		/* Overall depth */;
-	SG_Real teethDepth;		/* Teeth depth */
-	int	nTeeth;			/* Teeth count */
+	M_Real oallDia;			/* Overall diameter */
+	M_Real minDia;			/* Minimum part diameter */
+	M_Real maxDia;			/* Maximum part diameter */
+	M_Real oallDepth;		/* Overall depth */;
+	M_Real teethDepth;		/* Teeth depth */
+	int nTeeth;			/* Teeth count */
 } CAM_Chuck;
 
 #include "close_code.h"
