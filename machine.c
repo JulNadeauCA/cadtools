@@ -61,7 +61,7 @@ Attached(AG_Event *event)
 	AG_ThreadCreate(&ma->thNet, MachineThread, ma);
 	AG_ThreadCreate(&ma->thInact, InactivityCheck, ma);
 	
-	ma->model = SG_New(ma, "Geometric model", 0);
+	ma->model = SG_New(ma, _("Geometric model"), 0);
 	{
 		lt = SG_LightNew(ma->model->root, "Light0");
 		SG_Translate3(lt, -6.0, 6.0, -6.0);
@@ -81,7 +81,7 @@ Detached(AG_Event *event)
 	CAM_Machine *ma = AG_SELF();
 	int i;
 
-	fprintf(stderr, "Detaching %s...", AGOBJECT(ma)->name);
+	fprintf(stderr, _("Detaching %s..."), AGOBJECT(ma)->name);
 	AG_MutexLock(&ma->lock);
 	ma->flags |= CAM_MACHINE_DETACHING;
 	AG_MutexUnlock(&ma->lock);
@@ -95,11 +95,11 @@ Detached(AG_Event *event)
 		SDL_Delay(1000);
 	}
 	if (i == 10) {
-		fprintf(stderr, "%s: threads are not responding!\n",
+		fprintf(stderr, _("%s: Threads are not responding!\n"),
 		    AGOBJECT(ma)->name);
 	}
 out:
-	fprintf(stderr, "done\n");
+	fprintf(stderr, _("done\n"));
 	AG_ObjectPageOut(ma->model);
 	return;
 }
@@ -244,7 +244,7 @@ SetViewCamera(AG_Event *event)
 	SG_Camera *cam;
 
 	if ((cam = SG_FindNode(sgv->sg, which)) == NULL) {
-		AG_TextMsg(AG_MSG_ERROR, "Cannot find camera %s!", which);
+		AG_TextMsg(AG_MSG_ERROR, _("Cannot find Camera: %s"), which);
 		return;
 	}
 	SG_ViewSetCamera(sgv, cam);
@@ -272,7 +272,7 @@ ShowLightSettings(AG_Event *event)
 	AG_Window *win;
 
 	if ((lt = SG_FindNode(sgv->sg, ltname)) == NULL) {
-		AG_TextMsg(AG_MSG_ERROR, "Cannot find light: %s", ltname);
+		AG_TextMsg(AG_MSG_ERROR, _("Cannot find Light: %s"), ltname);
 		return;
 	}
 

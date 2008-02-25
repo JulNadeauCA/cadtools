@@ -15,21 +15,22 @@ typedef unsigned int Uchar;
 typedef unsigned long Ulong;
 #endif
 
-#include <agar/config/enable_nls.h>
+#include <config/enable_nls.h>
 #ifdef ENABLE_NLS
-# include <agar/libintl/libintl.h>
-# define _(String) gettext(String)
-# define gettext_noop(String) (String)
-# define N_(String) gettext_noop(String)
+# include <libintl.h>
+# define _(String) dgettext("cadtools",String)
+# ifdef dgettext_noop
+#  define N_(String) dgettext_noop("cadtools",String)
+# else
+#  define N_(String) (String)
+# endif
 #else
 # undef _
 # undef N_
-# undef textdomain
-# undef bindtextdomain
+# undef ngettext
 # define _(s) (s)
 # define N_(s) (s)
-# define textdomain(d)
-# define bindtextdomain(p, d)
+# define ngettext(Singular,Plural,Number) ((Number==1)?(Singular):(Plural))
 #endif
 
 #ifdef WIN32

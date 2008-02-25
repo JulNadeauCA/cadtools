@@ -11,8 +11,10 @@ PROG_LINKS=	ag_core ag_gui ag_map ag_rg ag_vg ag_dev \
 SRCS=	cadtools.c part.c feature.c exboss.c program.c machine.c lathe.c \
 	mill.c
 
-CFLAGS+=${AGAR_CFLAGS} ${AGAR_DEV_CFLAGS} ${FREESG_CFLAGS}
-LIBS+=	${AGAR_LIBS} ${AGAR_DEV_LIBS} ${FREESG_LIBS}
+CFLAGS+=${AGAR_CFLAGS} ${AGAR_DEV_CFLAGS} ${FREESG_CFLAGS} ${GETTEXT_CFLAGS}
+LIBS+=	${AGAR_LIBS} ${AGAR_DEV_LIBS} ${FREESG_LIBS} ${GETTEXT_LIBS}
+
+SUBDIR= po
 
 all: all-subdir ${PROG}
 clean: clean-prog clean-subdir

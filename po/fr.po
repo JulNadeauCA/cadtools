@@ -1,0 +1,406 @@
+#
+# Copyright (c) 2008 Hypertriton, Inc. <http://hypertriton.com>
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE FOR
+# ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE
+# USE OF THIS SOFTWARE EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: cadtools 1.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-02-25 12:05-0400\n"
+"PO-Revision-Date: 2008-02-25 11:24-0400\n"
+"Last-Translator: Julien Nadeau <julien.nadeau@hypertriton.com>\n"
+"Language-Team: French <french@hypertriton.com>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Geometric model"
+msgstr "Modèle géométrique"
+
+#, c-format
+msgid "Detaching %s..."
+msgstr "Détachement de %s..."
+
+#, c-format
+msgid "%s: Threads are not responding!\n"
+msgstr "%s: Les threads ne répondent pas!\n"
+
+#, c-format
+msgid "done\n"
+msgstr "terminé\n"
+
+msgid "Machine is online"
+msgstr "Machine disponible"
+
+msgid "Machine is busy or offline"
+msgstr "Machine occupée ou hors-ligne"
+
+#, c-format
+msgid "Cannot find Camera: %s"
+msgstr "Impossible de trouver la Caméra: %s"
+
+#, c-format
+msgid "Camera settings (%s)"
+msgstr "Paramètres de caméra (%s)"
+
+#, c-format
+msgid "Cannot find Light: %s"
+msgstr "Impossible de trouver la Lumière: %s"
+
+msgid "Light settings"
+msgstr "Paramètres de lumière"
+
+msgid "Hostname/port not specified"
+msgstr "Nom d'hôte ou port non spécifié"
+
+msgid "Username/password not specified"
+msgstr "Code d'utilisateur ou mot de passe non spécifié"
+
+msgid "Machine enabled"
+msgstr "Machine active"
+
+msgid "Status"
+msgstr "État"
+
+msgid "Controller"
+msgstr "Controlleur"
+
+msgid "Hostname: "
+msgstr "Nom d'hôte: "
+
+msgid "Port: "
+msgstr "Port: "
+
+msgid "Username: "
+msgstr "Code d'utilisateur: "
+
+msgid "Password: "
+msgstr "Mot de passe: "
+
+msgid "Enable machine"
+msgstr "Activer machine"
+
+msgid "Program Queue"
+msgstr "File d'attente programmes"
+
+msgid "Upload queue:"
+msgstr "File d'attente chargement:"
+
+msgid "Program"
+msgstr "Programme"
+
+msgid "Remote queue:"
+msgstr "File d'attente distante:"
+
+msgid "Owner"
+msgstr "Maître"
+
+msgid "3D model"
+msgstr "Modèle 3D"
+
+#, c-format
+msgid "Server refused data: %s"
+msgstr "Le serveur à refusé les données: %s"
+
+msgid "EOF from server"
+msgstr "Reçu EOF du serveur"
+
+msgid "Write error"
+msgstr "Erreur d'écriture"
+
+msgid "Upload incomplete"
+msgstr "Téléchargement incomplet"
+
+#, c-format
+msgid "Commit failed: %s"
+msgstr "L'opération à échouée: %s"
+
+#, c-format
+msgid ""
+"Program %s successfully uploaded to %s.\n"
+"Size: %lu bytes\n"
+"Response: %s\n"
+msgstr ""
+"Programme « %s » envoyé vers %s avec succès.\n"
+"Taille: %lu octets\n"
+"Réponse: %s\n"
+
+#. CAD_Part *part = AG_PTR(1);
+#. char *path = AG_STRING(2);
+msgid "Not implemented yet"
+msgstr "Fonction non implémentée"
+
+msgid "Native cadtools part"
+msgstr "Pièce cadtools native"
+
+msgid "Stanford PLY"
+msgstr "PLY (Stanford)"
+
+msgid "Comment: "
+msgstr "Commentaire: "
+
+msgid "Save vertex normals"
+msgstr "Sauver les normals des sommets"
+
+msgid "Save vertex colors"
+msgstr "Sauver les couleurs des sommets"
+
+msgid "Save texture coords"
+msgstr "Sauver les coordonées de textures"
+
+msgid "Wavefront OBJ"
+msgstr "OBJ (Wavefront)"
+
+msgid "Scaling factor"
+msgstr "Facteur de taille"
+
+msgid "Load vertex normals"
+msgstr "Charger vecteurs normaux"
+
+msgid "Load vertex colors"
+msgstr "Charger les couleurs des sommets"
+
+msgid "Load texture coords"
+msgstr "Charger les coordonées de textures"
+
+msgid "Detect duplicate vertices"
+msgstr "Détecter les sommets en double"
+
+msgid "View"
+msgstr "Vue"
+
+msgid "Default"
+msgstr "Défaut"
+
+msgid "Front view"
+msgstr "Vue de face"
+
+msgid "Top view"
+msgstr "Vue de haut"
+
+msgid "Left view"
+msgstr "Vue de gauche"
+
+msgid "Camera settings..."
+msgstr "Paramètres de caméra..."
+
+msgid "Light0 settings..."
+msgstr "Paramètres de Lumière0..."
+
+msgid "Light1 settings..."
+msgstr "Paramètres de Lumière1..."
+
+msgid "Features"
+msgstr "Fonctions"
+
+#, c-format
+msgid "Program: %s"
+msgstr "Programme: %s"
+
+#, c-format
+msgid "Save changes to %s?"
+msgstr "Sauvegarder les changements effectuées à %s?"
+
+msgid "Save"
+msgstr "Sauvegarder"
+
+msgid "Discard"
+msgstr "Perdre les changements"
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Open..."
+msgstr "Ouvrir..."
+
+#.
+#. * Save to 2D sketch format
+#.
+msgid "cadtools sketch"
+msgstr "Esquisse cadtools"
+
+#, c-format
+msgid "Save %s as..."
+msgstr "Sauvegarder %s sous..."
+
+msgid "AutoCAD DXF"
+msgstr "DXF (AutoCAD)"
+
+msgid "Binary format"
+msgstr "Format binaire"
+
+#, c-format
+msgid "Error saving object: %s"
+msgstr "Erreur lors de la sauvegarde de l'objet: %s"
+
+#, c-format
+msgid "Saved object %s successfully"
+msgstr "Sauvegarde de l'objet %s effectuée avec succès"
+
+msgid "Exit application?"
+msgstr "Quitter l'application?"
+
+msgid "There is at least one object with unsaved changes.  Exit application?"
+msgstr "Au moins un objet à été modifié sans avoir été sauvegardé. Quitter l'application?"
+
+msgid "Discard changes"
+msgstr "Perdre les changements"
+
+msgid "New sketch..."
+msgstr "Nouvelle esquisse..."
+
+msgid "New part..."
+msgstr "Nouvelle pièce..."
+
+msgid "New program..."
+msgstr "Nouveau programme..."
+
+msgid "Save as..."
+msgstr "Sauvegarder sous..."
+
+msgid "Machines"
+msgstr "Machines"
+
+msgid "New lathe..."
+msgstr "Nouveau tour..."
+
+msgid "New mill..."
+msgstr "Nouvelle fraiseuse..."
+
+msgid "Quit"
+msgstr "Quitter"
+
+msgid "Undo"
+msgstr "Défaire"
+
+msgid "Redo"
+msgstr "Refaire"
+
+msgid "Extruded boss/base"
+msgstr "Extrusion d'esquisse"
+
+msgid "Extrusion"
+msgstr "Extrusion"
+
+msgid "Editor VFS"
+msgstr "Éditeur VFS"
+
+msgid "File"
+msgstr "Fichier"
+
+msgid "Edit"
+msgstr "Édition"
+
+msgid "Debug"
+msgstr "Déboguage"
+
+#, c-format
+msgid "Dummy: %s"
+msgstr "Exemple: %s"
+
+msgid "Spindle on/off control"
+msgstr "Contrôle de la broche (on/off)"
+
+msgid "Spindle speed control"
+msgstr "Contrôle de la broche (vitesse)"
+
+msgid "Spindle tachometer readout"
+msgstr "Lecture de vitesse de la broche"
+
+msgid "Sync program with tachometer"
+msgstr "Synchroniser programme sur tachymètre"
+
+msgid "Options"
+msgstr "Options"
+
+msgid "Specs"
+msgstr "Spéc."
+
+msgid "Swing over bed: "
+msgstr ""
+
+msgid "Swing over cross-slide: "
+msgstr ""
+
+msgid "Cross-slide travel: "
+msgstr "Course de la glissière transversale: "
+
+msgid "Carriage travel: "
+msgstr "Course du chariot transversal: "
+
+msgid "Compound travel: "
+msgstr "Course de la glissière supérieure: "
+
+msgid "Distance between centers: "
+msgstr "Distance entre les pointes: "
+
+msgid "Tailstock travel: "
+msgstr "Course de la contre-pointe: "
+
+msgid "Spindle"
+msgstr "Broche"
+
+msgid "Spindle bore diameter: "
+msgstr "Alésage: "
+
+msgid "Minimum RPM: "
+msgstr "RPM minimal: "
+
+msgid "Maximum RPM: "
+msgstr "RPM maximal: "
+
+msgid "Spindle power: "
+msgstr "Moteur: "
+
+msgid "Mist coolant control"
+msgstr "Contrôle refroidissant brumisateur"
+
+msgid "Flood coolant control"
+msgstr "Contrôle refroidissant inondant"
+
+msgid "Vortex tube control"
+msgstr "Contrôle tube de Ranque-Hilsch"
+
+msgid "X limit switches"
+msgstr "Interrupteurs de position X"
+
+msgid "Y limit switches"
+msgstr "Interrupteurs de position Y"
+
+msgid "Z limit switches"
+msgstr "Interrupteurs de position Z"
+
+msgid "Table length: "
+msgstr "Longueur de table: "
+
+msgid "Table width: "
+msgstr "Largeur de table: "
+
+msgid "X travel: "
+msgstr "Course X: "
+
+msgid "Y travel: "
+msgstr "Course Y: "
+
+msgid "Z travel: "
+msgstr "Course Z: "

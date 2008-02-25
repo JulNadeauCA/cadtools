@@ -148,7 +148,7 @@ SetViewCamera(AG_Event *event)
 	SG_Camera *cam;
 
 	if ((cam = SG_FindNode(sgv->sg, which)) == NULL) {
-		AG_TextMsg(AG_MSG_ERROR, "Cannot find camera %s!", which);
+		AG_TextMsg(AG_MSG_ERROR, _("Cannot find Camera: %s"), which);
 		return;
 	}
 	SG_ViewSetCamera(sgv, cam);
@@ -176,7 +176,7 @@ ShowLightSettings(AG_Event *event)
 	AG_Window *win;
 
 	if ((lt = SG_FindNode(sgv->sg, ltname)) == NULL) {
-		AG_TextMsg(AG_MSG_ERROR, "Cannot find light: %s", ltname);
+		AG_TextMsg(AG_MSG_ERROR, _("Cannot find Light: %s"), ltname);
 		return;
 	}
 
@@ -226,7 +226,7 @@ SavePartToPLY(AG_Event *event)
 //	CAD_Part *part = AG_PTR(1);
 //	char *path = AG_STRING(2);
 
-	AG_TextMsg(AG_MSG_ERROR, "Not implemented yet");
+	AG_TextMsg(AG_MSG_ERROR, _("Not implemented yet"));
 }
 
 /* Save part to Wavefront OBJ format. */
@@ -236,7 +236,7 @@ SavePartToOBJ(AG_Event *event)
 //	CAD_Part *part = AG_PTR(1);
 //	char *path = AG_STRING(2);
 
-	AG_TextMsg(AG_MSG_ERROR, "Not implemented yet");
+	AG_TextMsg(AG_MSG_ERROR, _("Not implemented yet"));
 }
 
 void

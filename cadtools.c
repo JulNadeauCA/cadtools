@@ -27,16 +27,13 @@
  * Main graphical user interface for cadtools.
  */
 
-#include <config/have_agar_dev.h>
-#include <config/have_getopt.h>
-
 #include <agar/core.h>
 #include <agar/gui.h>
+
+#include <config/have_agar_dev.h>
 #ifdef HAVE_AGAR_DEV
 #include <agar/dev.h>
 #endif
-
-#include <config/debug.h>
 
 #include <string.h>
 
@@ -45,6 +42,11 @@
 #endif
 
 #include "cadtools.h"
+
+#include <config/debug.h>
+#include <config/have_getopt.h>
+#include <config/enable_nls.h>
+#include <config/localedir.h>
 
 AG_Menu *appMenu = NULL;
 AG_Object vfsRoot;
@@ -281,10 +283,11 @@ Save(AG_Event *event)
 		return;
 	}
 	if (AG_ObjectSave(obj) == -1) {
-		AG_TextMsg(AG_MSG_ERROR, "Error saving object: %s",
+		AG_TextMsg(AG_MSG_ERROR, _("Error saving object: %s"),
 		    AG_GetError());
 	} else {
-		AG_TextInfo("Saved %s successfully", AGOBJECT(obj)->name);
+		AG_TextInfo(_("Saved object %s successfully"),
+		    AGOBJECT(obj)->name);
 	}
 }
 
@@ -329,19 +332,20 @@ Quit(AG_Event *event)
 		    AG_WINDOW_NORESIZE, "QuitCallback")) == NULL) {
 			return;
 		}
-		AG_WindowSetCaption(win, "Exit application?");
+		AG_WindowSetCaption(win, _("Exit application?"));
 		AG_WindowSetPosition(win, AG_WINDOW_CENTER, 0);
 		AG_WindowSetSpacing(win, 8);
 		AG_LabelNewStaticString(win, 0,
-		    "There is at least one object with unsaved changes.  "
-	            "Exit application?");
+		    _("There is at least one object with unsaved changes.  "
+	              "Exit application?"));
 		box = AG_BoxNew(win, AG_BOX_HORIZ, AG_BOX_HOMOGENOUS|
 		                                   AG_VBOX_HFILL);
 		AG_BoxSetSpacing(box, 0);
 		AG_BoxSetPadding(box, 0);
-		AG_ButtonNewFn(box, 0, "Discard changes", ConfirmQuit, NULL);
-		AG_WidgetFocus(AG_ButtonNewFn(box, 0, "Cancel", AbortQuit,
-		    "%p", win));
+		AG_ButtonNewFn(box, 0, _("Discard changes"),
+		    ConfirmQuit, NULL);
+		AG_WidgetFocus(AG_ButtonNewFn(box, 0, _("Cancel"),
+		    AbortQuit, "%p", win));
 		AG_WindowShow(win);
 	}
 }
@@ -352,22 +356,22 @@ FileMenu(AG_Event *event)
 	AG_MenuItem *m = AG_SENDER();
 	AG_MenuItem *node;
 
-	AG_MenuActionKb(m, "New sketch...", agIconDoc.s, SDLK_s, KMOD_ALT,
+	AG_MenuActionKb(m, _("New sketch..."), agIconDoc.s, SDLK_s, KMOD_ALT,
 	    NewObject, "%p", &skClass);
-	AG_MenuActionKb(m, "New part...", agIconDoc.s, SDLK_p, KMOD_ALT,
+	AG_MenuActionKb(m, _("New part..."), agIconDoc.s, SDLK_p, KMOD_ALT,
 	    NewObject, "%p", &cadPartClass);
-	AG_MenuActionKb(m, "New program...", agIconDoc.s, SDLK_c, KMOD_ALT,
+	AG_MenuActionKb(m, _("New program..."), agIconDoc.s, SDLK_c, KMOD_ALT,
 	    NewObject, "%p", &camProgramClass);
 
-	AG_MenuActionKb(m, "Open...", agIconLoad.s, SDLK_o, KMOD_CTRL,
+	AG_MenuActionKb(m, _("Open..."), agIconLoad.s, SDLK_o, KMOD_CTRL,
 	    OpenDlg, NULL);
 
 	AG_MutexLock(&objLock);
 	if (objFocus == NULL) { AG_MenuDisable(m); }
 
-	AG_MenuActionKb(m, "Save", agIconSave.s, SDLK_s, KMOD_CTRL,
+	AG_MenuActionKb(m, _("Save"), agIconSave.s, SDLK_s, KMOD_CTRL,
 	    Save, "%p", objFocus);
-	AG_MenuAction(m, "Save as...", agIconSave.s,
+	AG_MenuAction(m, _("Save as..."), agIconSave.s,
 	    SaveAsDlg, "%p", objFocus);
 	
 	if (objFocus == NULL) { AG_MenuEnable(m); }
@@ -375,13 +379,13 @@ FileMenu(AG_Event *event)
 	
 	AG_MenuSeparator(m);
 
-	node = AG_MenuNode(m, "Machines", NULL);
+	node = AG_MenuNode(m, _("Machines"), NULL);
 	{
 		CAM_Machine *mach;
 
-		AG_MenuAction(node, "New lathe...", agIconDoc.s,
+		AG_MenuAction(node, _("New lathe..."), agIconDoc.s,
 		    NewObject, "%p", &camLatheClass);
-		AG_MenuAction(node, "New mill...", agIconDoc.s,
+		AG_MenuAction(node, _("New mill..."), agIconDoc.s,
 		    NewObject, "%p", &camMillClass);
 
 		AG_MenuSeparator(node);
@@ -395,7 +399,7 @@ FileMenu(AG_Event *event)
 	
 	AG_MenuSeparator(m);
 	
-	AG_MenuActionKb(m, "Quit", NULL, SDLK_q, KMOD_CTRL, Quit, NULL);
+	AG_MenuActionKb(m, _("Quit"), NULL, SDLK_q, KMOD_CTRL, Quit, NULL);
 }
 
 static void
@@ -419,9 +423,9 @@ EditMenu(AG_Event *event)
 	
 	AG_MutexLock(&objLock);
 	if (objFocus == NULL) { AG_MenuDisable(m); }
-	AG_MenuActionKb(m, "Undo", NULL, SDLK_z, KMOD_CTRL,
+	AG_MenuActionKb(m, _("Undo"), NULL, SDLK_z, KMOD_CTRL,
 	    Undo, "%p", objFocus);
-	AG_MenuActionKb(m, "Redo", NULL, SDLK_r, KMOD_CTRL,
+	AG_MenuActionKb(m, _("Redo"), NULL, SDLK_r, KMOD_CTRL,
 	    Redo, "%p", objFocus);
 	if (objFocus == NULL) { AG_MenuEnable(m); }
 	AG_MutexUnlock(&objLock);
@@ -452,6 +456,12 @@ main(int argc, char *argv[])
 {
 	int c, i, fps = -1;
 	char *s;
+
+#ifdef ENABLE_NLS
+	bindtextdomain("cadtools", LOCALEDIR);
+	bind_textdomain_codeset("cadtools", "UTF-8");
+	textdomain("cadtools");
+#endif
 
 	if (AG_InitCore("cadtools", AG_CORE_VERBOSE) == -1) {
 		fprintf(stderr, "%s\n", AG_GetError());
@@ -505,7 +515,8 @@ main(int argc, char *argv[])
 	}
 #endif /* HAVE_GETOPT */
 
-	if (AG_InitVideo(1024,768,32,AG_VIDEO_OPENGL|AG_VIDEO_RESIZABLE) == -1) {
+	if (AG_InitVideo(1024,768,32,AG_VIDEO_OPENGL|AG_VIDEO_RESIZABLE)
+	    == -1) {
 		fprintf(stderr, "%s\n", AG_GetError());
 		return (-1);
 	}
@@ -516,7 +527,7 @@ main(int argc, char *argv[])
 	AG_BindGlobalKey(SDLK_F8, KMOD_NONE, AG_ViewCapture);
 
 	AG_ObjectInitStatic(&vfsRoot, NULL);
-	AG_ObjectSetName(&vfsRoot, "Editor VFS");
+	AG_ObjectSetName(&vfsRoot, _("Editor VFS"));
 	AG_MutexInit(&objLock);
 
 	/* Register our classes. */
@@ -524,16 +535,17 @@ main(int argc, char *argv[])
 
 	/* Create the application menu. */ 
 	appMenu = AG_MenuNewGlobal(0);
-	AG_MenuDynamicItem(appMenu->root, "File", NULL, FileMenu, NULL);
-	AG_MenuDynamicItem(appMenu->root, "Edit", NULL, EditMenu, NULL);
-	AG_MenuDynamicItem(appMenu->root, "Features", NULL, FeaturesMenu, NULL);
+	AG_MenuDynamicItem(appMenu->root, _("File"), NULL, FileMenu, NULL);
+	AG_MenuDynamicItem(appMenu->root, _("Edit"), NULL, EditMenu, NULL);
+	AG_MenuDynamicItem(appMenu->root, _("Features"), NULL, FeaturesMenu,
+	    NULL);
 
 #if defined(HAVE_AGAR_DEV) && defined(DEBUG)
 	DEV_InitSubsystem(0);
 	if (agDebugLvl >= 5) {
 		DEV_Browser(&vfsRoot);
 	}
-	DEV_ToolMenu(AG_MenuNode(appMenu->root, "Debug", NULL));
+	DEV_ToolMenu(AG_MenuNode(appMenu->root, _("Debug"), NULL));
 #endif
 	AG_EventLoop();
 	AG_ObjectDestroy(&vfsRoot);
