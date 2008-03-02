@@ -1757,6 +1757,19 @@ echo "GETTEXT_LIBS=$GETTEXT_LIBS" >>Makefile.config
 echo "mdefs[\"GETTEXT_LIBS\"] = \"$GETTEXT_LIBS\"" >>configure.lua
 fi;
 fi;
+else
+echo "#ifndef GETTEXT_CFLAGS" > config/gettext_cflags.h
+echo "#define GETTEXT_CFLAGS \"$GETTEXT_CFLAGS\"" >> config/gettext_cflags.h
+echo "#endif" >> config/gettext_cflags.h
+echo "hdefs[\"GETTEXT_CFLAGS\"] = \"$GETTEXT_CFLAGS\"" >>configure.lua
+echo "#ifndef GETTEXT_LIBS" > config/gettext_libs.h
+echo "#define GETTEXT_LIBS \"$GETTEXT_LIBS\"" >> config/gettext_libs.h
+echo "#endif" >> config/gettext_libs.h
+echo "hdefs[\"GETTEXT_LIBS\"] = \"$GETTEXT_LIBS\"" >>configure.lua
+echo "GETTEXT_CFLAGS=$GETTEXT_CFLAGS" >>Makefile.config
+echo "mdefs[\"GETTEXT_CFLAGS\"] = \"$GETTEXT_CFLAGS\"" >>configure.lua
+echo "GETTEXT_LIBS=$GETTEXT_LIBS" >>Makefile.config
+echo "mdefs[\"GETTEXT_LIBS\"] = \"$GETTEXT_LIBS\"" >>configure.lua
 fi;
 	if [ "${HAVE_GETTEXT}" != "yes" ]
  then
