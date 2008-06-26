@@ -39,8 +39,8 @@ if [ "${HAVE_FREESG}" = "no" ]; then
 fi
 if [ "${HAVE_AGAR_NET}" = "no" ]; then
 	echo "*"
-	echo "* Agar-Net is not installed on your system. It is required by"
-	echo "* this package. See http://hypertriton.com/agar-net/"
+	echo "* CADTools's CAM functionality requires network support."
+	echo "* Please recompile Agar with the --enable-network option."
 	echo "*"
 	exit 1
 fi
