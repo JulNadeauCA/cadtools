@@ -114,9 +114,9 @@ WindowGainedFocus(AG_Event *event)
 	AG_Object *obj = AG_PTR(1);
 	
 	AG_MutexLock(&objLock);
-	if (AG_ObjectIsClass(obj, "SK:*") ||
-	    AG_ObjectIsClass(obj, "CAD_Part:*") ||
-	    AG_ObjectIsClass(obj, "CAM_Program:*")) {
+	if (AG_OfClass(obj, "SK:*") ||
+	    AG_OfClass(obj, "CAD_Part:*") ||
+	    AG_OfClass(obj, "CAM_Program:*")) {
 		objFocus = obj;
 	} else {
 		objFocus = NULL;
@@ -255,7 +255,7 @@ SaveAsDlg(AG_Event *event)
 	    AG_FILEDLG_SAVE|AG_FILEDLG_CLOSEWIN|AG_FILEDLG_EXPAND);
 	AG_FileDlgSetOptionContainer(fd, AG_BoxNewVert(win, AG_BOX_HFILL));
 
-	if (AG_ObjectIsClass(obj, "SK:*")) {
+	if (AG_OfClass(obj, "SK:*")) {
 		/*
 		 * Save to 2D sketch format
 		 */
@@ -267,7 +267,7 @@ SaveAsDlg(AG_Event *event)
 			AG_FileOptionNewBool(ft, _("Binary format"),
 			    "dxf.binary", 1);
 		}
-	} else if (AG_ObjectIsClass(obj, "CAD_Part:*")) {
+	} else if (AG_OfClass(obj, "CAD_Part:*")) {
 		CAD_PartSaveMenu(fd, (CAD_Part *)obj);
 	}
 	AG_WindowShow(win);
@@ -440,7 +440,7 @@ FeaturesMenu(AG_Event *event)
 	
 	AG_MutexLock(&objLock);
 	if (objFocus != NULL) {
-		if (AG_ObjectIsClass(objFocus, "CAD_Part:*")) {
+		if (AG_OfClass(objFocus, "CAD_Part:*")) {
 			CAD_Part *part = objFocus;
 
 			AG_MenuAction(m, _("Extruded boss/base"), NULL,

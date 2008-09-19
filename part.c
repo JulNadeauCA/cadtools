@@ -47,23 +47,23 @@ Init(void *obj)
 	part->so = SG_ObjectNew(part->sg->root, "Part Object");
 
 	cam = SG_CameraNew(part->sg->root, "CameraFront");
-	SG_Translate3(cam, 0.0, 0.0, 5.0);
+	SG_Translate(cam, 0.0, 0.0, 5.0);
 
 	cam = SG_CameraNew(part->sg->root, "CameraLeft");
-	SG_Translate3(cam, -5.0, 0.0, 0.0);
-	SG_Rotatevd(cam, 90.0, VecJ());
+	SG_Translate(cam, -5.0, 0.0, 0.0);
+	SG_Rotatevd(cam, 90.0, M_VecJ3());
 	
 	cam = SG_CameraNew(part->sg->root, "CameraTop");
-	SG_Translate3(cam, 0.0, 5.0, -0.0);
-	SG_Rotatevd(cam, 90.0, VecI());
+	SG_Translate(cam, 0.0, 5.0, -0.0);
+	SG_Rotatevd(cam, 90.0, M_VecI3());
 #if 0
 	lt = SG_LightNew(part->sg->root, "Light0");
-	SG_Translate3(lt, -6.0, 6.0, -6.0);
+	SG_Translate(lt, -6.0, 6.0, -6.0);
 	lt->Kc = 0.5;
 	lt->Kl = 0.05;
 
 	lt = SG_LightNew(part->sg->root, "Light1");
-	SG_Translate3(lt, 6.0, 6.0, 6.0);
+	SG_Translate(lt, 6.0, 6.0, 6.0);
 	lt->Kc = 0.25;
 	lt->Kl = 0.05;
 #endif
@@ -101,7 +101,7 @@ FindFeatures(AG_Tlist *tl, AG_Object *pob, int depth)
 	AG_TlistItem *it;
 	int nosel = 0;
 	
-	if (!AG_ObjectIsClass(pob, "CAD_Feature:*")) {
+	if (!AG_OfClass(pob, "CAD_Feature:*")) {
 		if (!TAILQ_EMPTY(&pob->children)) {
 			nosel++;
 		} else {
@@ -111,7 +111,6 @@ FindFeatures(AG_Tlist *tl, AG_Object *pob, int depth)
 
 	it = AG_TlistAdd(tl, AG_ObjectIcon(pob), "%s", pob->name);
 	it->depth = depth;
-	it->cat = pob->cls->name;
 	it->p1 = pob;
 	if (nosel) {
 		it->flags |= AG_TLIST_NO_SELECT;

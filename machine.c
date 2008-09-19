@@ -64,11 +64,11 @@ Attached(AG_Event *event)
 	ma->model = SG_New(ma, _("Geometric model"), 0);
 	{
 		lt = SG_LightNew(ma->model->root, "Light0");
-		SG_Translate3(lt, -6.0, 6.0, -6.0);
+		SG_Translate(lt, -6.0, 6.0, -6.0);
 		lt->Kc = 0.5;
 		lt->Kl = 0.05;
 		lt = SG_LightNew(ma->model->root, "Light1");
-		SG_Translate3(lt, 6.0, 6.0, 6.0);
+		SG_Translate(lt, 6.0, 6.0, 6.0);
 		lt->Kc = 0.25;
 		lt->Kl = 0.05;
 	}
@@ -389,7 +389,7 @@ int
 CAM_MachineUploadProgram(CAM_Machine *ma, CAM_Program *prog)
 {
 	NC_Session *sess = &ma->sess;
-	char buf[BUFSIZ];
+	char buf[AG_BUFFER_MAX];
 	char path[AG_OBJECT_PATH_MAX];
 	char prog_name[AG_OBJECT_PATH_MAX];
 	char digest[AG_OBJECT_DIGEST_MAX];
