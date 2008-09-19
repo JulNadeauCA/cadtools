@@ -72,6 +72,10 @@ INCL?=none
 INCLDIR?=
 CLEANFILES?=
 
+CTAGS?=
+CTAGSFLAGS?=
+DPADD+=lib-tags
+
 all: all-subdir lib${LIB}.a lib${LIB}.la
 install: install-lib install-subdir
 deinstall: deinstall-lib deinstall-subdir
@@ -329,10 +333,13 @@ clean-lib:
 	    echo "rm -f ${CLEANFILES}"; \
 	    rm -f ${CLEANFILES}; \
 	fi
+	@if [ -e ".depend" ]; then \
+		echo "echo -n >.depend"; \
+		echo -n >.depend; \
+	fi
 
 cleandir-lib:
-	rm -f ${LIBTOOL} ${LIBTOOL_COOKIE} ${LTCONFIG_LOG} config.log
-	rm -f .depend
+	rm -f ${LIBTOOL} ${LIBTOOL_COOKIE} ${LTCONFIG_LOG} config.log tags
 	if [ -e "./config/prefix.h" ]; then rm -fr ./config; fi
 	if [ -e "Makefile.config" ]; then echo -n >Makefile.config; fi
 
@@ -439,13 +446,26 @@ ${LIBTOOL_COOKIE}: ${LTCONFIG} ${LTMAIN_SH} ${LTCONFIG_GUESS} ${LTCONFIG_SUB}
 
 none:
 
+lib-tags:
+	-@if [ "${CTAGS}" != "" ]; then \
+	    if [ "${SRC}" != "" ]; then \
+	        (cd ${SRC}; \
+		 echo "${CTAGS} ${CTAGSFLAGS} -R"; \
+	         ${CTAGS} ${CTAGSFLAGS} -R); \
+	    else \
+	        echo "${CTAGS} ${CTAGSFLAGS} -R"; \
+	        ${CTAGS} ${CTAGSFLAGS} -R; \
+	    fi; \
+	fi
+
 ${LTCONFIG} ${LTCONFIG_GUESS} ${LTCONFIG_SUB} ${LTMAIN_SH}:
 
 .PHONY: install deinstall includes clean cleandir regress depend
 .PHONY: install-lib deinstall-lib clean-lib cleandir-lib
-.PHONY: _lib_objs _lib_shobjs none
+.PHONY: _lib_objs _lib_shobjs lib-tags none
 
 include ${TOP}/mk/build.common.mk
 include ${TOP}/mk/build.dep.mk
 include ${TOP}/mk/build.proj.mk
 include ${TOP}/mk/build.subdir.mk
+include .depend
