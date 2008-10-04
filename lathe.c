@@ -119,7 +119,7 @@ Edit(void *obj)
 
 	ntab = AG_NotebookAddTab(nb, _("Options"), AG_BOX_VERT);
 	{
-		AG_CheckboxSetFromFlags(ntab, &lathe->flags, latheFlags);
+		AG_CheckboxSetFromFlags(ntab, 0, &lathe->flags, latheFlags);
 	}
 	ntab = AG_NotebookAddTab(nb, _("Specs"), AG_BOX_VERT);
 	{

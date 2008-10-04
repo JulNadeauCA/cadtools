@@ -340,13 +340,13 @@ Edit(void *obj)
 	
 	ntab = AG_NotebookAddTab(nb, _("Controller"), AG_BOX_VERT);
 	{
-		tb = AG_TextboxNew(ntab, AG_TEXTBOX_HFILL, _("Hostname: "));
+		tb = AG_TextboxNew(ntab, 0, _("Hostname: "));
 		AG_TextboxBindUTF8(tb, ma->host, sizeof(ma->host));
-		tb = AG_TextboxNew(ntab, AG_TEXTBOX_HFILL, _("Port: "));
+		tb = AG_TextboxNew(ntab, 0, _("Port: "));
 		AG_TextboxBindUTF8(tb, ma->port, sizeof(ma->port));
-		tb = AG_TextboxNew(ntab, AG_TEXTBOX_HFILL, _("Username: "));
+		tb = AG_TextboxNew(ntab, 0, _("Username: "));
 		AG_TextboxBindUTF8(tb, ma->user, sizeof(ma->user));
-		tb = AG_TextboxNew(ntab, AG_TEXTBOX_HFILL, _("Password: "));
+		tb = AG_TextboxNew(ntab, 0, _("Password: "));
 		AG_TextboxBindUTF8(tb, ma->pass, sizeof(ma->pass));
 		AG_TextboxSetPassword(tb, 1);
 
@@ -360,14 +360,14 @@ Edit(void *obj)
 	ntab = AG_NotebookAddTab(nb, _("Program Queue"), AG_BOX_VERT);
 	{
 		pane = AG_PaneNew(ntab, AG_PANE_VERT, AG_PANE_EXPAND);
-		lbl = AG_LabelNewStatic(pane->div[0], 0, _("Upload queue:"));
+		lbl = AG_LabelNewString(pane->div[0], 0, _("Upload queue:"));
 		AG_LabelSetPaddingBottom(lbl, 4);
 		tbl = AG_TableNewPolled(pane->div[0], AG_TABLE_EXPAND,
 		    PollUploadQueue, "%p", ma);
 		AG_TableAddCol(tbl, _("Program"), "<XXXXXXXXXXXXXX>", NULL);
 		AG_TableAddCol(tbl, _("Status"), NULL, NULL);
 
-		lbl = AG_LabelNewStatic(pane->div[1], 0, _("Remote queue:"));
+		lbl = AG_LabelNewString(pane->div[1], 0, _("Remote queue:"));
 		AG_LabelSetPaddingBottom(lbl, 4);
 		tbl = AG_TableNewPolled(pane->div[1], AG_TABLE_EXPAND,
 		    PollControllerQueue, "%p", ma);
