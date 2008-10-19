@@ -464,7 +464,7 @@ main(int argc, char *argv[])
 	textdomain("cadtools");
 #endif
 
-	if (AG_InitCore("cadtools", AG_CORE_VERBOSE) == -1) {
+	if (AG_InitCore("cadtools", AG_VERBOSE|AG_CREATE_DATADIR) == -1) {
 		fprintf(stderr, "%s\n", AG_GetError());
 		return (1);
 	}

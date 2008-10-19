@@ -3,7 +3,7 @@
 
 #include <freesg/sg.h>
 #include <freesg/sg/sg_view.h>
-#include <agar/net.h>
+#include <agar/core/net.h>
 
 #ifdef _CADTOOLS_INTERNAL
 

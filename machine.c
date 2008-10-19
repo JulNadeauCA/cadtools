@@ -28,14 +28,18 @@
 
 #include <stdarg.h>
 #include <string.h>
-#include <errno.h>
 #include <unistd.h>
 
 #include "cadtools.h"
 #include "protocol.h"
 
+#include <agar/config/network.h>
+
+#ifdef NETWORK
+#include <errno.h>
 static void *MachineThread(void *);
 static void *InactivityCheck(void *);
+#endif
 
 void
 CAM_MachineLog(CAM_Machine *ma, const char *fmt, ...)
@@ -58,9 +62,11 @@ Attached(AG_Event *event)
 	CAM_Machine *ma = AG_SELF();
 	SG_Light *lt;
 
+#ifdef NETWORK
 	AG_ThreadCreate(&ma->thNet, MachineThread, ma);
 	AG_ThreadCreate(&ma->thInact, InactivityCheck, ma);
-	
+#endif
+
 	ma->model = SG_New(ma, _("Geometric model"), 0);
 	{
 		lt = SG_LightNew(ma->model->root, "Light0");
@@ -79,6 +85,7 @@ static void
 Detached(AG_Event *event)
 {
 	CAM_Machine *ma = AG_SELF();
+#ifdef NETWORK
 	int i;
 
 	fprintf(stderr, _("Detaching %s..."), AGOBJECT(ma)->name);
@@ -100,8 +107,13 @@ Detached(AG_Event *event)
 	}
 out:
 	fprintf(stderr, _("done\n"));
+#else /* !NETWORK */
+	AG_MutexLock(&ma->lock);
+	ma->flags |= CAM_MACHINE_DETACHED;
+	AG_MutexUnlock(&ma->lock);
+#endif /* NETWORK */
+
 	AG_ObjectPageOut(ma->model);
-	return;
 }
 
 static void
@@ -118,7 +130,9 @@ Init(void *obj)
 	ma->cons = NULL;
 	ma->model = NULL;
 	TAILQ_INIT(&ma->upload);
+#ifdef NETWORK
 	NC_Init(&ma->sess, _PROTO_MACHCTL_NAME, _PROTO_MACHCTL_VER);
+#endif
 	AG_SetEvent(ma, "attached", Attached, NULL);
 	AG_SetEvent(ma, "detached", Detached, NULL);
 	AG_MutexInitRecursive(&ma->lock);
@@ -130,7 +144,9 @@ Destroy(void *obj)
 	CAM_Machine *ma = obj;
 
 	AG_PostEvent(NULL, ma, "detached", NULL);
+#ifdef NETWORK
 	NC_Destroy(&ma->sess);
+#endif
 	AG_MutexDestroy(&ma->lock);
 }
 
@@ -162,6 +178,7 @@ Save(void *obj, AG_DataSource *buf)
 	return (0);
 }
 
+#ifdef NETWORK
 static void *
 MachineThread(void *obj)
 {
@@ -235,6 +252,7 @@ skip:
 		SDL_Delay(1000);
 	}
 }
+#endif /* NETWORK */
 
 static void
 SetViewCamera(AG_Event *event)
@@ -388,6 +406,7 @@ Edit(void *obj)
 int
 CAM_MachineUploadProgram(CAM_Machine *ma, CAM_Program *prog)
 {
+#ifdef NETWORK
 	NC_Session *sess = &ma->sess;
 	char buf[AG_BUFFER_MAX];
 	char path[AG_OBJECT_PATH_MAX];
@@ -455,6 +474,10 @@ CAM_MachineUploadProgram(CAM_Machine *ma, CAM_Program *prog)
 fail_close:
 	fclose(f);
 	return (-1);
+#else /* !NETWORK */
+	AG_SetError(_("Network support unavailable"));
+	return (-1);
+#endif /* NETWORK */
 }
 
 AG_ObjectClass camMachineClass = {
