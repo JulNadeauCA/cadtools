@@ -502,7 +502,7 @@ main(int argc, char *argv[])
 			AG_SetBool(agConfig, "font.freetype", 1);
 			break;
 		case 'T':
-			AG_SetString(agConfig, "font-path", "%s", optarg);
+			AG_SetString(agConfig, "font-path", optarg);
 			break;
 		case 't':
 			AG_TextParseFontSpec(optarg);
@@ -516,7 +516,7 @@ main(int argc, char *argv[])
 	}
 #endif /* HAVE_GETOPT */
 
-	if (AG_InitVideo(1024,768,32,AG_VIDEO_OPENGL|AG_VIDEO_RESIZABLE)
+	if (AG_InitVideo(800,600,32,AG_VIDEO_OPENGL|AG_VIDEO_RESIZABLE)
 	    == -1) {
 		fprintf(stderr, "%s\n", AG_GetError());
 		return (-1);
