@@ -146,9 +146,9 @@ Edit(void *obj)
 		                                       "diameter: "));
 		M_BindReal(num, "value", &lathe->spBore);
 		num = AG_NumericalNew(ntab, 0, NULL, _("Minimum RPM: "));
-		AG_WidgetBindInt(num, "value", &lathe->spMinRPM);
+		AG_BindInt(num, "value", &lathe->spMinRPM);
 		num = AG_NumericalNew(ntab, 0, NULL, _("Maximum RPM: "));
-		AG_WidgetBindInt(num, "value", &lathe->spMaxRPM);
+		AG_BindInt(num, "value", &lathe->spMaxRPM);
 		num = AG_NumericalNew(ntab, 0, "HP", _("Spindle power: "));
 		M_BindReal(num, "value", &lathe->spPower);
 	}

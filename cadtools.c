@@ -524,7 +524,7 @@ main(int argc, char *argv[])
 	SG_InitSubsystem();
 	SK_InitSubsystem();
 	AG_SetRefreshRate(fps);
-	AG_BindGlobalKey(SDLK_ESCAPE, KMOD_NONE, AG_Quit);
+	AG_BindGlobalKey(SDLK_ESCAPE, KMOD_NONE, AG_QuitGUI);
 	AG_BindGlobalKey(SDLK_F8, KMOD_NONE, AG_ViewCapture);
 
 	AG_ObjectInitStatic(&vfsRoot, NULL);

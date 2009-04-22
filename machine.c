@@ -372,8 +372,7 @@ Edit(void *obj)
 
 		btn = AG_ButtonNewFn(ntab, AG_BUTTON_HFILL|AG_BUTTON_STICKY,
 		    _("Enable machine"), EnableMachine, "%p", ma);
-		AG_WidgetBindFlag32(btn, "state", &ma->flags,
-		    CAM_MACHINE_ENABLED);
+		AG_BindFlag32(btn, "state", &ma->flags, CAM_MACHINE_ENABLED);
 	}
 	ntab = AG_NotebookAddTab(nb, _("Program Queue"), AG_BOX_VERT);
 	{
