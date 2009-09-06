@@ -33,7 +33,7 @@
 #include "cadtools.h"
 #include "protocol.h"
 
-#include <agar/config/network.h>
+#include <agar/config/ag_network.h>
 
 #ifdef NETWORK
 #include <errno.h>
