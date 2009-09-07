@@ -67,7 +67,7 @@ RegisterClasses(void)
 static void
 SaveAndClose(AG_Object *obj, AG_Window *win)
 {
-	AG_ViewDetach(win);
+	AG_ObjectDetach(win);
 	AG_ObjectPageOut(obj);
 }
 
@@ -307,7 +307,7 @@ AbortQuit(AG_Event *event)
 	AG_Window *win = AG_PTR(1);
 
 	agTerminating = 0;
-	AG_ViewDetach(win);
+	AG_ObjectDetach(win);
 }
 
 static void
