@@ -109,7 +109,7 @@ FindFeatures(AG_Tlist *tl, AG_Object *pob, int depth)
 		}
 	}
 
-	it = AG_TlistAdd(tl, AG_ObjectIcon(pob), "%s", pob->name);
+	it = AG_TlistAddS(tl, AG_ObjectIcon(pob), pob->name);
 	it->depth = depth;
 	it->p1 = pob;
 	if (nosel) {
@@ -180,7 +180,7 @@ ShowLightSettings(AG_Event *event)
 	}
 
 	win = AG_WindowNew(0);
-	AG_WindowSetCaption(win, _("Light settings"));
+	AG_WindowSetCaptionS(win, _("Light settings"));
 	AG_ObjectAttach(win, SGNODE_OPS(lt)->edit(lt, sgv));
 	AG_WindowShow(win);
 }
@@ -201,7 +201,7 @@ tryname:
 
 	ft = Malloc(cls->size);
 	AG_ObjectInit(ft, &cadFeatureClass);
-	AG_ObjectSetName(ft, "%s", name);
+	AG_ObjectSetNameS(ft, name);
 	AG_ObjectAttach(part, ft);
 }
 
@@ -346,7 +346,7 @@ Edit(void *obj)
 	SG_View *sgv;
 
 	win = AG_WindowNew(0);
-	AG_WindowSetCaption(win, "%s", AGOBJECT(part)->name);
+	AG_WindowSetCaptionS(win, AGOBJECT(part)->name);
 
 	toolbar = AG_ToolbarNew(NULL, AG_TOOLBAR_VERT, 1, 0);
 	sgv = SG_ViewNew(NULL, part->sg, SG_VIEW_EXPAND);

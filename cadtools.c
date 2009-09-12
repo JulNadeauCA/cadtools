@@ -171,9 +171,9 @@ CAD_SetArchivePath(void *obj, const char *path)
 	AG_ObjectSetArchivePath(obj, path);
 
 	if ((c = strrchr(path, PATHSEPC)) != NULL && c[1] != '\0') {
-		AG_ObjectSetName(obj, "%s", &c[1]);
+		AG_ObjectSetNameS(obj, &c[1]);
 	} else {
-		AG_ObjectSetName(obj, "%s", path);
+		AG_ObjectSetNameS(obj, path);
 	}
 }
 
@@ -204,7 +204,7 @@ OpenDlg(AG_Event *event)
 	AG_Pane *hPane;
 
 	win = AG_WindowNew(0);
-	AG_WindowSetCaption(win, _("Open..."));
+	AG_WindowSetCaptionS(win, _("Open..."));
 
 	hPane = AG_PaneNewHoriz(win, AG_PANE_EXPAND);
 	fd = AG_FileDlgNewMRU(hPane->div[0], "cadtools.mru.parts",
@@ -329,11 +329,11 @@ Quit(AG_Event *event)
 	if (obj == NULL) {
 		ConfirmQuit(NULL);
 	} else {
-		if ((win = AG_WindowNewNamed(AG_WINDOW_MODAL|AG_WINDOW_NOTITLE|
+		if ((win = AG_WindowNewNamedS(AG_WINDOW_MODAL|AG_WINDOW_NOTITLE|
 		    AG_WINDOW_NORESIZE, "QuitCallback")) == NULL) {
 			return;
 		}
-		AG_WindowSetCaption(win, _("Exit application?"));
+		AG_WindowSetCaptionS(win, _("Exit application?"));
 		AG_WindowSetPosition(win, AG_WINDOW_CENTER, 0);
 		AG_WindowSetSpacing(win, 8);
 		AG_LabelNewString(win, 0,

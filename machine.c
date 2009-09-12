@@ -53,7 +53,7 @@ CAM_MachineLog(CAM_Machine *ma, const char *fmt, ...)
 	va_start(args, fmt);
 	vsnprintf(msg, sizeof(msg), fmt, args);
 	va_end(args);
-	AG_ConsoleMsg(ma->cons, "%s", msg);
+	AG_ConsoleMsgS(ma->cons, msg);
 }
 
 static void
@@ -295,7 +295,7 @@ ShowLightSettings(AG_Event *event)
 	}
 
 	win = AG_WindowNew(0);
-	AG_WindowSetCaption(win, _("Light settings"));
+	AG_WindowSetCaptionS(win, _("Light settings"));
 	AG_ObjectAttach(win, SGNODE_OPS(lt)->edit(lt, sgv));
 	AG_WindowShow(win);
 }
@@ -349,7 +349,7 @@ Edit(void *obj)
 	AG_Label *lbl;
 
 	win = AG_WindowNew(0);
-	AG_WindowSetCaption(win, "%s", AGOBJECT(ma)->name);
+	AG_WindowSetCaptionS(win, AGOBJECT(ma)->name);
 
 	nb = AG_NotebookNew(win, AG_NOTEBOOK_EXPAND);
 
@@ -358,13 +358,13 @@ Edit(void *obj)
 	
 	ntab = AG_NotebookAddTab(nb, _("Controller"), AG_BOX_VERT);
 	{
-		tb = AG_TextboxNew(ntab, 0, _("Hostname: "));
+		tb = AG_TextboxNewS(ntab, 0, _("Hostname: "));
 		AG_TextboxBindUTF8(tb, ma->host, sizeof(ma->host));
-		tb = AG_TextboxNew(ntab, 0, _("Port: "));
+		tb = AG_TextboxNewS(ntab, 0, _("Port: "));
 		AG_TextboxBindUTF8(tb, ma->port, sizeof(ma->port));
-		tb = AG_TextboxNew(ntab, 0, _("Username: "));
+		tb = AG_TextboxNewS(ntab, 0, _("Username: "));
 		AG_TextboxBindUTF8(tb, ma->user, sizeof(ma->user));
-		tb = AG_TextboxNew(ntab, 0, _("Password: "));
+		tb = AG_TextboxNewS(ntab, 0, _("Password: "));
 		AG_TextboxBindUTF8(tb, ma->pass, sizeof(ma->pass));
 		AG_TextboxSetPassword(tb, 1);
 
