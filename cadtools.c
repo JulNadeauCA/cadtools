@@ -357,20 +357,25 @@ FileMenu(AG_Event *event)
 	AG_MenuItem *m = AG_SENDER();
 	AG_MenuItem *node;
 
-	AG_MenuActionKb(m, _("New sketch..."), agIconDoc.s, SDLK_s, KMOD_ALT,
+	AG_MenuActionKb(m, _("New sketch..."), agIconDoc.s,
+	    AG_KEY_S, AG_KEYMOD_ALT,
 	    NewObject, "%p", &skClass);
-	AG_MenuActionKb(m, _("New part..."), agIconDoc.s, SDLK_p, KMOD_ALT,
+	AG_MenuActionKb(m, _("New part..."), agIconDoc.s,
+	    AG_KEY_P, AG_KEYMOD_ALT,
 	    NewObject, "%p", &cadPartClass);
-	AG_MenuActionKb(m, _("New program..."), agIconDoc.s, SDLK_c, KMOD_ALT,
+	AG_MenuActionKb(m, _("New program..."), agIconDoc.s,
+	    AG_KEY_C, AG_KEYMOD_ALT,
 	    NewObject, "%p", &camProgramClass);
 
-	AG_MenuActionKb(m, _("Open..."), agIconLoad.s, SDLK_o, KMOD_CTRL,
+	AG_MenuActionKb(m, _("Open..."), agIconLoad.s,
+	    AG_KEY_O, AG_KEYMOD_CTRL,
 	    OpenDlg, NULL);
 
 	AG_MutexLock(&objLock);
 	if (objFocus == NULL) { AG_MenuDisable(m); }
 
-	AG_MenuActionKb(m, _("Save"), agIconSave.s, SDLK_s, KMOD_CTRL,
+	AG_MenuActionKb(m, _("Save"), agIconSave.s,
+	    AG_KEY_S, AG_KEYMOD_CTRL,
 	    Save, "%p", objFocus);
 	AG_MenuAction(m, _("Save as..."), agIconSave.s,
 	    SaveAsDlg, "%p", objFocus);
@@ -400,7 +405,8 @@ FileMenu(AG_Event *event)
 	
 	AG_MenuSeparator(m);
 	
-	AG_MenuActionKb(m, _("Quit"), NULL, SDLK_q, KMOD_CTRL, Quit, NULL);
+	AG_MenuActionKb(m, _("Quit"), NULL,
+	    AG_KEY_Q, AG_KEYMOD_CTRL, Quit, NULL);
 }
 
 static void
@@ -424,9 +430,11 @@ EditMenu(AG_Event *event)
 	
 	AG_MutexLock(&objLock);
 	if (objFocus == NULL) { AG_MenuDisable(m); }
-	AG_MenuActionKb(m, _("Undo"), NULL, SDLK_z, KMOD_CTRL,
+	AG_MenuActionKb(m, _("Undo"), NULL,
+	    AG_KEY_Z, AG_KEYMOD_CTRL,
 	    Undo, "%p", objFocus);
-	AG_MenuActionKb(m, _("Redo"), NULL, SDLK_r, KMOD_CTRL,
+	AG_MenuActionKb(m, _("Redo"), NULL,
+	    AG_KEY_R, AG_KEYMOD_CTRL,
 	    Redo, "%p", objFocus);
 	if (objFocus == NULL) { AG_MenuEnable(m); }
 	AG_MutexUnlock(&objLock);
