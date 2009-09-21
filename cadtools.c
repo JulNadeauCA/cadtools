@@ -524,8 +524,8 @@ main(int argc, char *argv[])
 	SG_InitSubsystem();
 	SK_InitSubsystem();
 	AG_SetRefreshRate(fps);
-	AG_BindGlobalKey(SDLK_ESCAPE, KMOD_NONE, AG_QuitGUI);
-	AG_BindGlobalKey(SDLK_F8, KMOD_NONE, AG_ViewCapture);
+	AG_BindGlobalKey(AG_KEY_ESCAPE, AG_KEYMOD_ANY, AG_QuitGUI);
+	AG_BindGlobalKey(AG_KEY_F8, AG_KEYMOD_ANY, AG_ViewCapture);
 
 	AG_ObjectInitStatic(&vfsRoot, NULL);
 	AG_ObjectSetName(&vfsRoot, _("Editor VFS"));
