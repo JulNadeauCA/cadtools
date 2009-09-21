@@ -295,10 +295,7 @@ Save(AG_Event *event)
 static void
 ConfirmQuit(AG_Event *event)
 {
-	SDL_Event nev;
-
-	nev.type = SDL_USEREVENT;
-	SDL_PushEvent(&nev);
+	AG_QuitGUI();
 }
 
 static void

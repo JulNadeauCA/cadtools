@@ -99,7 +99,7 @@ Detached(AG_Event *event)
 			goto out;
 		}
 		AG_MutexUnlock(&ma->lock);
-		SDL_Delay(1000);
+		AG_Delay(1000);
 	}
 	if (i == 10) {
 		fprintf(stderr, _("%s: Threads are not responding!\n"),
@@ -209,14 +209,14 @@ MachineThread(void *obj)
 			/* ... */
 
 			AG_MutexLock(&ma->lock);
-			ma->tPong = SDL_GetTicks();
+			ma->tPong = AG_GetTicks();
 			AG_MutexUnlock(&ma->lock);
 
 			NC_FreeResult(res);
 		}
 		NC_Disconnect(&ma->sess);
 wait:
-		SDL_Delay(1000);
+		AG_Delay(1000);
 	}
 }
 
@@ -236,12 +236,12 @@ InactivityCheck(void *obj)
 			goto skip;
 		}
 		if (ma->flags & CAM_MACHINE_BUSY) {
-			if ((SDL_GetTicks() - ma->tPong) < 2000) {
+			if ((AG_GetTicks() - ma->tPong) < 2000) {
 				CAM_MachineLog(ma, _("Machine is online"));
 				ma->flags &= ~CAM_MACHINE_BUSY;
 			}
 		} else {
-			if ((SDL_GetTicks() - ma->tPong) > 2000) {
+			if ((AG_GetTicks() - ma->tPong) > 2000) {
 				CAM_MachineLog(ma,
 				    _("Machine is busy or offline"));
 				ma->flags |= CAM_MACHINE_BUSY;
@@ -249,7 +249,7 @@ InactivityCheck(void *obj)
 		}
 skip:
 		AG_MutexUnlock(&ma->lock);
-		SDL_Delay(1000);
+		AG_Delay(1000);
 	}
 }
 #endif /* NETWORK */
