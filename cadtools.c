@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Hypertriton, Inc. <http://hypertriton.com>
+ * Copyright (c) 2007-2009 Hypertriton, Inc. <http://hypertriton.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -462,6 +462,7 @@ main(int argc, char *argv[])
 {
 	int c, i, fps = -1;
 	char *s;
+	char *driverSpec = "<OpenGL>";
 
 #ifdef ENABLE_NLS
 	bindtextdomain("cadtools", LOCALEDIR);
@@ -477,34 +478,17 @@ main(int argc, char *argv[])
 	AG_TextParseFontSpec("Vera.ttf:15");
 
 #ifdef HAVE_GETOPT
-	while ((c = getopt(argc, argv, "?dDvfFbBt:T:r:")) != -1) {
+	while ((c = getopt(argc, argv, "?d:vt:T:r:")) != -1) {
 		extern char *optarg;
 
 		switch (c) {
-# ifdef DEBUG
 		case 'd':
-			agDebugLvl = 5;
+			driverSpec = optarg;
 			break;
-		case 'D':
-			agDebugLvl = 10;
-			break;
-# endif
 		case 'v':
 			exit(0);
-		case 'f':
-			AG_SetBool(agConfig, "view.full-screen", 1);
-			break;
-		case 'F':
-			AG_SetBool(agConfig, "view.full-screen", 0);
-			break;
 		case 'r':
 			fps = atoi(optarg);
-			break;
-		case 'b':
-			AG_SetBool(agConfig, "font.freetype", 0);
-			break;
-		case 'B':
-			AG_SetBool(agConfig, "font.freetype", 1);
 			break;
 		case 'T':
 			AG_SetString(agConfig, "font-path", optarg);
@@ -514,15 +498,14 @@ main(int argc, char *argv[])
 			break;
 		case '?':
 		default:
-			printf("%s [-dDvfFbB] [-r fps] [-t fontspec] "
-			       "[-T font-path]\n", agProgName);
+			printf("%s [-vfF] [-d agar-driver] [-r fps] "
+			       "[-t fontspec] [-T font-path]\n", agProgName);
 			exit(0);
 		}
 	}
 #endif /* HAVE_GETOPT */
 
-	if (AG_InitVideo(800,600,32,AG_VIDEO_OPENGL|AG_VIDEO_RESIZABLE)
-	    == -1) {
+	if (AG_InitGraphics(driverSpec) == -1) {
 		fprintf(stderr, "%s\n", AG_GetError());
 		return (-1);
 	}

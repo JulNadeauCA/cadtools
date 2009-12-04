@@ -398,10 +398,7 @@ Edit(void *obj)
 		AG_ObjectAttach(hPane->div[1], toolbar);
 	}
 	
-	AG_WindowSetGeometry(win,
-	    agView->w/16, agView->h/16,
-	    7*agView->w/8, 7*agView->h/8);
-
+	AG_WindowSetGeometryAlignedPct(win, AG_WINDOW_MC, 80, 80);
 	return (win);
 }
 

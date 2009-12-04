@@ -4,16 +4,9 @@
 #include <freesg/sg.h>
 #include <freesg/sg/sg_view.h>
 #include <agar/core/net.h>
+#include <agar/core/types.h>
 
 #ifdef _CADTOOLS_INTERNAL
-
-#include <agar/config/_mk_have_unsigned_typedefs.h>
-#ifndef _MK_HAVE_UNSIGNED_TYPEDEFS
-#define _MK_HAVE_UNSIGNED_TYPEDEFS
-typedef unsigned int Uint;
-typedef unsigned int Uchar;
-typedef unsigned long Ulong;
-#endif
 
 #include <config/enable_nls.h>
 #ifdef ENABLE_NLS
