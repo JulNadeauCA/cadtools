@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Hypertriton, Inc. <http://hypertriton.com>
+ * Copyright (c) 2007-2010 Hypertriton, Inc. <http://hypertriton.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -145,7 +145,7 @@ Edit(void *obj)
 		M_BindReal(num, "value", &mill->spPower);
 	}
 
-	return AG_WidgetParentWindow(nb);
+	return AG_ParentWindow(nb);
 }
 
 AG_ObjectClass camMillClass = {

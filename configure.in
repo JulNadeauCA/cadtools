@@ -20,47 +20,21 @@ C_NO_SECURE_WARNINGS()
 
 HDEFINE(CADTOOLS_VERSION, "$VERSION")
 
-CHECK(cc)
-CHECK(agar, 1.4.1)
-CHECK(agar-math, 1.4.1)
-CHECK(agar-dev, 1.4.1)
-CHECK(freesg, 1.0)
-CHECK(pthreads)
+REQUIRE(cc)
+REQUIRE(agar, 1.4.1)
+REQUIRE(agar-math, 1.4.1)
+REQUIRE(agar-dev, 1.4.1)
+REQUIRE(freesg, 1.0.0)
+REQUIRE(pthreads)
 CHECK(getopt)
 
-if [ "${HAVE_AGAR}" = "no" ]; then
-	echo "*"
-	echo "* Agar is not installed on your system. It is required by"
-	echo "* this package. See http://libagar.org/"
-	echo "*"
-	exit 1
-fi
-if [ "${HAVE_AGAR_MATH}" = "no" ]; then
-	echo "*"
-	echo "* Cadtools requires the Agar-Math library. Please recompile."
-	echo "* Agar without --disable-math."
-	echo "*"
-	exit 1
-fi
-
-if [ "${HAVE_FREESG}" = "no" ]; then
-	echo "*"
-	echo "* FreeSG is not installed on your system. It is required by"
-	echo "* this package. Download it from http://freesg.org/"
-	echo "*"
-	exit 1
-fi
-if [ "${HAVE_PTHREADS}" = "no" ]; then
-	echo "*"
-	echo "* This application requires threads, but I was unable to locate"
-	echo "* a POSIX threads library."
-	echo "*"
-	exit 1
-fi
-
 if [ "${enable_warnings}" = "yes" ]; then
-	MDEFINE(CFLAGS, "$CFLAGS -Wall -Werror -Wmissing-prototypes")
-	MDEFINE(CFLAGS, "$CFLAGS -Wno-unused")
+	C_OPTION(-Wall)
+	C_OPTION(-Werror)
+	C_OPTION(-Wmissing-prototypes)
+	MDEFINE(WNO_UNINITIALIZED, "-Wno-uninitialized")
+else
+	MDEFINE(WNO_UNINITIALIZED, "")
 fi
 if [ "${enable_debug}" = "yes" ]; then
 	C_DEFINE(CAD_DEBUG)

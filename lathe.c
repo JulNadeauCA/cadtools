@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Hypertriton, Inc. <http://hypertriton.com>
+ * Copyright (c) 2007-2010 Hypertriton, Inc. <http://hypertriton.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -152,7 +152,7 @@ Edit(void *obj)
 		num = AG_NumericalNew(ntab, 0, "HP", _("Spindle power: "));
 		M_BindReal(num, "value", &lathe->spPower);
 	}
-	return AG_WidgetParentWindow(nb);
+	return AG_ParentWindow(nb);
 }
 
 AG_ObjectClass camLatheClass = {

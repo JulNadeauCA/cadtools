@@ -43,12 +43,12 @@
 
 #include "cadtools.h"
 
-#include <config/debug.h>
 #include <config/have_getopt.h>
+#include <config/cadtools_version.h>
 #include <config/enable_nls.h>
 #include <config/localedir.h>
 
-AG_Menu *appMenu = NULL;
+AG_Menu *mdiMenu = NULL;
 AG_Object vfsRoot;
 
 static void *objFocus = NULL;
@@ -108,6 +108,7 @@ SaveChangesDlg(AG_Event *event)
 	}
 }
 
+/* Update the objFocus pointer (only useful in MDI mode). */
 static void
 WindowGainedFocus(AG_Event *event)
 {
@@ -123,7 +124,6 @@ WindowGainedFocus(AG_Event *event)
 	}
 	AG_MutexUnlock(&objLock);
 }
-
 static void
 WindowLostFocus(AG_Event *event)
 {
@@ -132,71 +132,73 @@ WindowLostFocus(AG_Event *event)
 	AG_MutexUnlock(&objLock);
 }
 
+/* Open a given object for edition. */
 AG_Window *
-CAD_CreateEditionWindow(void *p)
+CAD_OpenObject(void *p)
 {
 	AG_Object *obj = p;
 	AG_Window *win;
 
-	win = obj->cls->edit(obj);
+	if ((win = obj->cls->edit(obj)) == NULL) {
+		return (NULL);
+	}
 	AG_SetEvent(win, "window-close", SaveChangesDlg, "%p", obj);
 	AG_AddEvent(win, "window-gainfocus", WindowGainedFocus, "%p", obj);
 	AG_AddEvent(win, "window-lostfocus", WindowLostFocus, "%p", obj);
 	AG_AddEvent(win, "window-hidden", WindowLostFocus, "%p", obj);
+	AG_SetPointer(win, "object", obj);
+	AG_PostEvent(NULL, obj, "edit-open", NULL);
+
 	AG_WindowShow(win);
 	return (win);
 }
 
-static void
-NewObject(AG_Event *event)
+/* Create a new object of specified class and open for edition. */
+void
+CAD_GUI_NewObject(AG_Event *event)
 {
 	AG_ObjectClass *cls = AG_PTR(1);
 
-	CAD_CreateEditionWindow(AG_ObjectNew(&vfsRoot, NULL, cls));
+	CAD_OpenObject(AG_ObjectNew(&vfsRoot, NULL, cls));
 }
 
+#if 0
 static void
-EditMachine(AG_Event *event)
+OpenMachine(AG_Event *event)
 {
 	AG_Object *mach = AG_PTR(1);
 
-	CAD_CreateEditionWindow(mach);
+	CAD_OpenObject(mach);
 }
+#endif
 
+/* Event handler for object open from file. */
 void
-CAD_SetArchivePath(void *obj, const char *path)
+CAD_GUI_OpenObject(AG_Event *event)
 {
-	const char *c;
-
-	AG_ObjectSetArchivePath(obj, path);
-
-	if ((c = strrchr(path, PATHSEPC)) != NULL && c[1] != '\0') {
-		AG_ObjectSetNameS(obj, &c[1]);
-	} else {
-		AG_ObjectSetNameS(obj, path);
-	}
-}
-
-/* Load an object file from native cadtools format. */
-static void
-OpenSketch(AG_Event *event)
-{
-	char *path = AG_STRING(1);
+	AG_ObjectClass *cls = AG_PTR(1);
+	char *path = AG_STRING(2);
 	AG_Object *obj;
 
-	obj = AG_ObjectNew(&vfsRoot, NULL, &skClass);
+	if ((obj = AG_ObjectNew(&vfsRoot, NULL, cls)) == NULL) {
+		goto fail;
+	}
 	if (AG_ObjectLoadFromFile(obj, path) == -1) {
 		AG_TextMsgFromError();
 		AG_ObjectDetach(obj);
 		AG_ObjectDestroy(obj);
-		return;
+		goto fail;
 	}
-	CAD_SetArchivePath(obj, path);
-	CAD_CreateEditionWindow(obj);
+	AG_ObjectSetArchivePath(obj, path);
+	AG_ObjectSetNameS(obj, AG_ShortFilename(path));
+	CAD_OpenObject(obj);
+	return;
+fail:
+	AG_TextError(_("Could not open object: %s"), AG_GetError());
 }
 
-static void
-OpenDlg(AG_Event *event)
+void
+CAD_GUI_OpenDlg(AG_Event *event)
 {
 	AG_Window *win;
 	AG_FileDlg *fd;
@@ -208,16 +210,22 @@ OpenDlg(AG_Event *event)
 
 	hPane = AG_PaneNewHoriz(win, AG_PANE_EXPAND);
 	fd = AG_FileDlgNewMRU(hPane->div[0], "cadtools.mru.parts",
-	    AG_FILEDLG_LOAD|AG_FILEDLG_ASYNC|AG_FILEDLG_EXPAND);
+	    AG_FILEDLG_LOAD|AG_FILEDLG_CLOSEWIN|AG_FILEDLG_EXPAND|
+	    AG_FILEDLG_ASYNC);
+
 	AG_FileDlgSetOptionContainer(fd, hPane->div[1]);
 
 	AG_FileDlgAddType(fd, _("cadtools sketch"), "*.sk",
-	    OpenSketch, NULL);
+	    CAD_GUI_OpenObject, "%p", &skClass);
+	AG_FileDlgAddType(fd, _("cadtools part"), "*.part",
+	    CAD_GUI_OpenObject, "%p", &cadPartClass);
+	AG_FileDlgAddType(fd, _("cadtools program"), "*.prog",
+	    CAD_GUI_OpenObject, "%p", &camProgramClass);
 	CAD_PartOpenMenu(fd);
 
 	AG_WindowShow(win);
-	AG_WindowSetGeometry(win, AGWIDGET(win)->x-100, AGWIDGET(win)->y,
-	                          AGWIDGET(win)->w+200, AGWIDGET(win)->h);
+	AG_WindowSetGeometryAlignedPct(win, AG_WINDOW_MC, 40, 33);
+	AG_PaneMoveDividerPct(hPane, 66);
 }
 
 static void
@@ -229,7 +237,8 @@ SaveSketchToSK(AG_Event *event)
 	if (AG_ObjectSaveToFile(sk, path) == -1) {
 		AG_TextMsgFromError();
 	}
-	CAD_SetArchivePath(sk, path);
+	AG_ObjectSetArchivePath(sk, path);
+	AG_ObjectSetNameS(sk, AG_ShortFilename(path));
 }
 
 static void
@@ -241,13 +250,18 @@ SaveSketchToDXF(AG_Event *event)
 	AG_TextMsg(AG_MSG_ERROR, "Not implemented yet");
 }
 
-static void
-SaveAsDlg(AG_Event *event)
+void
+CAD_GUI_SaveAsDlg(AG_Event *event)
 {
 	AG_Object *obj = AG_PTR(1);
 	AG_Window *win;
 	AG_FileDlg *fd;
 	AG_FileType *ft;
+
+	if (obj == NULL) {
+		AG_TextError(_("No object is selected for saving"));
+		return;
+	}
 
 	win = AG_WindowNew(0);
 	AG_WindowSetCaption(win, _("Save %s as..."), obj->name);
@@ -273,13 +287,17 @@ SaveAsDlg(AG_Event *event)
 	AG_WindowShow(win);
 }
 
-static void
-Save(AG_Event *event)
+void
+CAD_GUI_Save(AG_Event *event)
 {
 	AG_Object *obj = AG_PTR(1);
 
+	if (obj == NULL) {
+		AG_TextError(_("No object is selected for saving"));
+		return;
+	}
 	if (AGOBJECT(obj)->archivePath == NULL) {
-		SaveAsDlg(event);
+		CAD_GUI_SaveAsDlg(event);
 		return;
 	}
 	if (AG_ObjectSave(obj) == -1) {
@@ -307,8 +325,8 @@ AbortQuit(AG_Event *event)
 	AG_ObjectDetach(win);
 }
 
-static void
-Quit(AG_Event *event)
+void
+CAD_GUI_Quit(AG_Event *event)
 {
 	AG_Object *obj;
 	AG_Window *win;
@@ -333,7 +351,7 @@ Quit(AG_Event *event)
 		AG_WindowSetCaptionS(win, _("Exit application?"));
 		AG_WindowSetPosition(win, AG_WINDOW_CENTER, 0);
 		AG_WindowSetSpacing(win, 8);
-		AG_LabelNewString(win, 0,
+		AG_LabelNewS(win, 0,
 		    _("There is at least one object with unsaved changes.  "
 	              "Exit application?"));
 		box = AG_BoxNew(win, AG_BOX_HORIZ, AG_BOX_HOMOGENOUS|
@@ -347,63 +365,75 @@ Quit(AG_Event *event)
 		AG_WindowShow(win);
 	}
 }
-
-static void
-FileMenu(AG_Event *event)
+		
+void
+CAD_InitMenuMDI(void)
 {
-	AG_MenuItem *m = AG_SENDER();
-	AG_MenuItem *node;
+	if ((mdiMenu = AG_MenuNewGlobal(0)) == NULL) {
+		AG_Verbose("App menu: %s\n", AG_GetError());
+		return;
+	}
+	CAD_FileMenu(AG_MenuNode(mdiMenu->root, _("File"), NULL), NULL);
+	CAD_EditMenu(AG_MenuNode(mdiMenu->root, _("Edit"), NULL), NULL);
+#if defined(HAVE_AGAR_DEV) && defined(CAD_DEBUG)
+	DEV_InitSubsystem(0);
+	DEV_ToolMenu(AG_MenuNode(mdiMenu->root, _("Debug"), NULL));
+#endif
+}
+
+/* Build a generic "File" menu. */
+void
+CAD_FileMenu(AG_MenuItem *m, void *obj)
+{
+	AG_MenuItem *mDevs;
+
+	if (obj == NULL)					/* MDI */
+		obj = objFocus;
 
 	AG_MenuActionKb(m, _("New sketch..."), agIconDoc.s,
-	    AG_KEY_S, AG_KEYMOD_ALT,
-	    NewObject, "%p", &skClass);
-	AG_MenuActionKb(m, _("New part..."), agIconDoc.s,
-	    AG_KEY_P, AG_KEYMOD_ALT,
-	    NewObject, "%p", &cadPartClass);
-	AG_MenuActionKb(m, _("New program..."), agIconDoc.s,
-	    AG_KEY_C, AG_KEYMOD_ALT,
-	    NewObject, "%p", &camProgramClass);
+	    AG_KEY_N, AG_KEYMOD_CTRL,
+	    CAD_GUI_NewObject, "%p", &skClass);
+	AG_MenuAction(m, _("New part..."), agIconDoc.s,
+	    CAD_GUI_NewObject, "%p", &cadPartClass);
+	AG_MenuAction(m, _("New program..."), agIconDoc.s,
+	    CAD_GUI_NewObject, "%p", &camProgramClass);
+	
+	AG_MenuSeparator(m);
 
 	AG_MenuActionKb(m, _("Open..."), agIconLoad.s,
 	    AG_KEY_O, AG_KEYMOD_CTRL,
-	    OpenDlg, NULL);
-
-	AG_MutexLock(&objLock);
-	if (objFocus == NULL) { AG_MenuDisable(m); }
-
+	    CAD_GUI_OpenDlg, NULL);
 	AG_MenuActionKb(m, _("Save"), agIconSave.s,
 	    AG_KEY_S, AG_KEYMOD_CTRL,
-	    Save, "%p", objFocus);
+	    CAD_GUI_Save, "%p", obj);
 	AG_MenuAction(m, _("Save as..."), agIconSave.s,
-	    SaveAsDlg, "%p", objFocus);
-	
-	if (objFocus == NULL) { AG_MenuEnable(m); }
-	AG_MutexUnlock(&objLock);
+	    CAD_GUI_SaveAsDlg, "%p", obj);
 	
 	AG_MenuSeparator(m);
 
-	node = AG_MenuNode(m, _("Machines"), NULL);
+	mDevs = AG_MenuNode(m, _("Devices"), NULL);
 	{
 		CAM_Machine *mach;
 
-		AG_MenuAction(node, _("New lathe..."), agIconDoc.s,
-		    NewObject, "%p", &camLatheClass);
-		AG_MenuAction(node, _("New mill..."), agIconDoc.s,
-		    NewObject, "%p", &camMillClass);
-
-		AG_MenuSeparator(node);
+		AG_MenuAction(mDevs, _("New CNC lathe..."), agIconDoc.s,
+		    CAD_GUI_NewObject, "%p", &camLatheClass);
+		AG_MenuAction(mDevs, _("New CNC mill..."), agIconDoc.s,
+		    CAD_GUI_NewObject, "%p", &camMillClass);
+#if 0
+		AG_MenuSeparator(mDevs);
 
 		AGOBJECT_FOREACH_CLASS(mach, &vfsRoot, cam_machine,
 		    "CAM_Machine:*") {
-			AG_MenuAction(node, AGOBJECT(mach)->name, agIconGear.s,
-			    EditMachine, "%p", mach);
+			AG_MenuAction(mDevs, AGOBJECT(mach)->name, agIconGear.s,
+			    OpenMachine, "%p", mach);
 		}
+#endif
 	}
 	
 	AG_MenuSeparator(m);
-	
 	AG_MenuActionKb(m, _("Quit"), NULL,
-	    AG_KEY_Q, AG_KEYMOD_CTRL, Quit, NULL);
+	    AG_KEY_Q, AG_KEYMOD_CTRL,
+	    CAD_GUI_Quit, NULL);
 }
 
 static void
@@ -420,47 +450,25 @@ Redo(AG_Event *event)
 	printf("redo!\n");
 }
 
-static void
-EditMenu(AG_Event *event)
+/* Build a generic "Edit" menu. */
+void
+CAD_EditMenu(AG_MenuItem *m, void *obj)
 {
-	AG_MenuItem *m = AG_SENDER();
+	if (obj == NULL)					/* MDI */
+		obj = objFocus;
 	
-	AG_MutexLock(&objLock);
-	if (objFocus == NULL) { AG_MenuDisable(m); }
 	AG_MenuActionKb(m, _("Undo"), NULL,
 	    AG_KEY_Z, AG_KEYMOD_CTRL,
-	    Undo, "%p", objFocus);
+	    Undo, "%p", obj);
 	AG_MenuActionKb(m, _("Redo"), NULL,
 	    AG_KEY_R, AG_KEYMOD_CTRL,
-	    Redo, "%p", objFocus);
-	if (objFocus == NULL) { AG_MenuEnable(m); }
-	AG_MutexUnlock(&objLock);
-}
-
-static void
-FeaturesMenu(AG_Event *event)
-{
-	extern AG_ObjectClass cadExtrudedBossClass;
-	AG_MenuItem *m = AG_SENDER();
-	CAD_Part *part;
-	
-	AG_MutexLock(&objLock);
-	if (objFocus != NULL) {
-		if (AG_OfClass(objFocus, "CAD_Part:*")) {
-			CAD_Part *part = objFocus;
-
-			AG_MenuAction(m, _("Extruded boss/base"), NULL,
-			    CAD_PartInsertFeature, "%p,%p,%s", part,
-			    &cadExtrudedBossClass, _("Extrusion"));
-		}
-	}
-	AG_MutexUnlock(&objLock);
+	    Redo, "%p", obj);
 }
 
 int
 main(int argc, char *argv[])
 {
-	int c, i, fps = -1;
+	int c, i;
 	char *s;
 	char *driverSpec = "<OpenGL>";
 
@@ -469,26 +477,20 @@ main(int argc, char *argv[])
 	bind_textdomain_codeset("cadtools", "UTF-8");
 	textdomain("cadtools");
 #endif
-
 	if (AG_InitCore("cadtools", AG_VERBOSE|AG_CREATE_DATADIR) == -1) {
-		fprintf(stderr, "%s\n", AG_GetError());
+		fprintf(stderr, "InitCore: %s\n", AG_GetError());
 		return (1);
 	}
-	
-	AG_TextParseFontSpec("Vera.ttf:15");
-
 #ifdef HAVE_GETOPT
-	while ((c = getopt(argc, argv, "?d:vt:T:r:")) != -1) {
+	while ((c = getopt(argc, argv, "?vd:t:T:")) != -1) {
 		extern char *optarg;
 
 		switch (c) {
+		case 'v':
+			printf("cadtools %s\n", CADTOOLS_VERSION);
+			return (0);
 		case 'd':
 			driverSpec = optarg;
-			break;
-		case 'v':
-			exit(0);
-		case 'r':
-			fps = atoi(optarg);
 			break;
 		case 'T':
 			AG_SetString(agConfig, "font-path", optarg);
@@ -498,46 +500,75 @@ main(int argc, char *argv[])
 			break;
 		case '?':
 		default:
-			printf("%s [-vfF] [-d agar-driver] [-r fps] "
-			       "[-t fontspec] [-T font-path]\n", agProgName);
-			exit(0);
+			printf("Usage: %s [-v] [-d agar-driver-spec] "
+			       "[-t font-spec] [-T font-path]\n", agProgName);
+			return (1);
 		}
 	}
 #endif /* HAVE_GETOPT */
 
 	if (AG_InitGraphics(driverSpec) == -1) {
-		fprintf(stderr, "%s\n", AG_GetError());
-		return (-1);
+		goto fail;
 	}
 	SG_InitSubsystem();
 	SK_InitSubsystem();
-	AG_SetRefreshRate(fps);
-	AG_BindGlobalKey(AG_KEY_ESCAPE, AG_KEYMOD_ANY, AG_QuitGUI);
+	AG_BindGlobalKeyEv(AG_KEY_ESCAPE, AG_KEYMOD_ANY, CAD_GUI_Quit);
 	AG_BindGlobalKey(AG_KEY_F8, AG_KEYMOD_ANY, AG_ViewCapture);
 
 	AG_ObjectInitStatic(&vfsRoot, NULL);
-	AG_ObjectSetName(&vfsRoot, _("Editor VFS"));
+	AG_ObjectSetName(&vfsRoot, "cadtools");
 	AG_MutexInit(&objLock);
 
 	/* Register our classes. */
 	RegisterClasses();
 
 	/* Create the application menu. */ 
-	appMenu = AG_MenuNewGlobal(0);
-	AG_MenuDynamicItem(appMenu->root, _("File"), NULL, FileMenu, NULL);
-	AG_MenuDynamicItem(appMenu->root, _("Edit"), NULL, EditMenu, NULL);
-	AG_MenuDynamicItem(appMenu->root, _("Features"), NULL, FeaturesMenu,
-	    NULL);
+	if (agDriverSw != NULL) {
+		CAD_InitMenuMDI();
+	} else {
+		AG_Object *objNew;
 
-#if defined(HAVE_AGAR_DEV) && defined(DEBUG)
-	DEV_InitSubsystem(0);
-	if (agDebugLvl >= 5) {
-		DEV_Browser(&vfsRoot);
+		if ((objNew = AG_ObjectNew(&vfsRoot, NULL, &cadPartClass))
+		    == NULL) {
+			goto fail;
+		}
+		if (CAD_OpenObject(objNew) == NULL)
+			goto fail;
 	}
-	DEV_ToolMenu(AG_MenuNode(appMenu->root, _("Debug"), NULL));
+
+#ifdef HAVE_GETOPT
+	for (i = optind; i < argc; i++) {
+#else
+	for (i = 1; i < argc; i++) {
 #endif
+		AG_Event ev;
+		char *ext;
+
+		Verbose("Loading: %s\n", argv[i]);
+		if ((ext = strrchr(argv[i], '.')) == NULL)
+			continue;
+
+		AG_EventInit(&ev);
+		if (strcasecmp(ext, ".sk") == 0) {
+			AG_EventPushPointer(&ev, "", &skClass);
+		} else if (strcasecmp(ext, ".part") == 0) {
+			AG_EventPushPointer(&ev, "", &cadPartClass);
+		} else if (strcasecmp(ext, ".prog") == 0) {
+			AG_EventPushPointer(&ev, "", &camProgramClass);
+		} else {
+			Verbose("Ignoring argument: %s\n", argv[i]);
+			continue;
+		}
+		AG_EventPushString(&ev, "", argv[i]);
+		CAD_GUI_OpenObject(&ev);
+	}
+
 	AG_EventLoop();
 	AG_ObjectDestroy(&vfsRoot);
 	AG_Destroy();
 	return (0);
+fail:
+	fprintf(stderr, "%s\n", AG_GetError());
+	AG_Destroy();
+	return (1);
 }

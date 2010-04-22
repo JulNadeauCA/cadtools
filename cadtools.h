@@ -51,8 +51,17 @@ struct ag_menu;
 extern struct ag_menu *appMenu;
 extern AG_Object vfsRoot;
 
-void       CAD_SetArchivePath(void *, const char *);
-AG_Window *CAD_CreateEditionWindow(void *);
+AG_Window *CAD_OpenObject(void *);
+void       CAD_GUI_NewObject(AG_Event *);
+void       CAD_GUI_OpenObject(AG_Event *);
+void       CAD_GUI_OpenDlg(AG_Event *);
+void       CAD_GUI_Save(AG_Event *);
+void       CAD_GUI_SaveAsDlg(AG_Event *);
+void       CAD_GUI_Quit(AG_Event *);
+
+void       CAD_InitMenuMDI(void);
+void       CAD_FileMenu(AG_MenuItem *, void *);
+void       CAD_EditMenu(AG_MenuItem *, void *);
 __END_DECLS
 #include "close_code.h"
 

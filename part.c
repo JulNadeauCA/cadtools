@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2007 Hypertriton, Inc. <http://hypertriton.com>
+ * Copyright (c) 2007-2010 Hypertriton, Inc. <http://hypertriton.com>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,6 +30,7 @@
 #include <string.h>
 
 #include "cadtools.h"
+#include "exboss.h"
 
 #include <freesg/sg/sg_load_ply.h>
 
@@ -215,7 +216,8 @@ SavePartToNative(AG_Event *event)
 	if (AG_ObjectSaveToFile(part, path) == -1) {
 		AG_TextMsgFromError();
 	}
-	CAD_SetArchivePath(part, path);
+	AG_ObjectSetArchivePath(part, path);
+	AG_ObjectSetNameS(part, AG_ShortFilename(path));
 }
 
 /* Save part to Stanford PLY format. */
@@ -243,7 +245,7 @@ CAD_PartSaveMenu(AG_FileDlg *fd, CAD_Part *part)
 {
 	AG_FileType *ft;
 
-	AG_FileDlgAddType(fd, _("Native cadtools part"), "*.part",
+	AG_FileDlgAddType(fd, _("cadtools part"), "*.part",
 	    SavePartToNative, "%p", part);
 
 	ft = AG_FileDlgAddType(fd, _("Stanford PLY"), "*.ply",
@@ -271,8 +273,9 @@ OpenPartNative(AG_Event *event)
 		AG_ObjectDestroy(obj);
 		return;
 	}
-	CAD_SetArchivePath(obj, path);
-	CAD_CreateEditionWindow(obj);
+	AG_ObjectSetArchivePath(obj, path);
+	AG_ObjectSetNameS(obj, AG_ShortFilename(path));
+	CAD_OpenObject(obj);
 }
 
 /* Generate a new part from a mesh in PLY format. */
@@ -309,7 +312,7 @@ OpenPartFromPLY(AG_Event *event)
 #if 0
 	SG_ObjectNormalize(part->so);
 #endif
-	CAD_CreateEditionWindow(part);
+	CAD_OpenObject(part);
 	fprintf(stderr, "Done\n");
 	return;
 fail:
@@ -341,7 +344,7 @@ Edit(void *obj)
 	AG_Window *win;
 	AG_Toolbar *toolbar;
 	AG_Menu *menu;
-	AG_MenuItem *pitem, *subitem;
+	AG_MenuItem *m;
 	AG_Pane *hPane;
 	SG_View *sgv;
 
@@ -352,23 +355,37 @@ Edit(void *obj)
 	sgv = SG_ViewNew(NULL, part->sg, SG_VIEW_EXPAND);
 
 	menu = AG_MenuNew(win, AG_MENU_HFILL);
-
-	pitem = AG_MenuAddItem(menu, _("View"));
+	
+	m = AG_MenuNode(menu->root, _("File"), NULL);
 	{
-		AG_MenuAction(pitem, _("Default"), sgIconCamera.s,
+		CAD_FileMenu(m, part);
+	}
+	m = AG_MenuNode(menu->root, _("Edit"), NULL);
+	{
+		CAD_EditMenu(m, part);
+	}
+	m = AG_MenuNode(menu->root, _("Features"), NULL);
+	{
+		AG_MenuAction(m, _("Extruded boss/base"), NULL,
+		    CAD_PartInsertFeature, "%p,%p,%s", part,
+		    &cadExtrudedBossClass, _("Extrusion"));
+	}
+	m = AG_MenuNode(menu->root, _("View"), NULL);
+	{
+		AG_MenuAction(m, _("Default"), sgIconCamera.s,
 		    SetViewCamera, "%p,%s", sgv, "Camera0");
-		AG_MenuAction(pitem, _("Front view"), sgIconCamera.s,
+		AG_MenuAction(m, _("Front view"), sgIconCamera.s,
 		    SetViewCamera, "%p,%s", sgv, "CameraFront");
-		AG_MenuAction(pitem, _("Top view"), sgIconCamera.s,
+		AG_MenuAction(m, _("Top view"), sgIconCamera.s,
 		    SetViewCamera, "%p,%s", sgv, "CameraTop");
-		AG_MenuAction(pitem, _("Left view"), sgIconCamera.s,
+		AG_MenuAction(m, _("Left view"), sgIconCamera.s,
 		    SetViewCamera, "%p,%s", sgv, "CameraLeft");
-		AG_MenuSeparator(pitem);
-		AG_MenuAction(pitem, _("Camera settings..."), agIconGear.s,
+		AG_MenuSeparator(m);
+		AG_MenuAction(m, _("Camera settings..."), agIconGear.s,
 		    ShowCameraSettings, "%p", sgv);
-		AG_MenuAction(pitem, _("Light0 settings..."), sgIconLighting.s,
+		AG_MenuAction(m, _("Light0 settings..."), sgIconLighting.s,
 		    ShowLightSettings, "%p,%s", sgv, "Light0");
-		AG_MenuAction(pitem, _("Light1 settings..."), sgIconLighting.s,
+		AG_MenuAction(m, _("Light1 settings..."), sgIconLighting.s,
 		    ShowLightSettings, "%p,%s", sgv, "Light1");
 	}
 	
@@ -397,7 +414,8 @@ Edit(void *obj)
 		}
 		AG_ObjectAttach(hPane->div[1], toolbar);
 	}
-	
+	AG_PaneMoveDividerPct(hPane, 33);
+
 	AG_WindowSetGeometryAlignedPct(win, AG_WINDOW_MC, 80, 80);
 	return (win);
 }

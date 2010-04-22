@@ -377,14 +377,14 @@ Edit(void *obj)
 	ntab = AG_NotebookAddTab(nb, _("Program Queue"), AG_BOX_VERT);
 	{
 		pane = AG_PaneNew(ntab, AG_PANE_VERT, AG_PANE_EXPAND);
-		lbl = AG_LabelNewString(pane->div[0], 0, _("Upload queue:"));
+		lbl = AG_LabelNewS(pane->div[0], 0, _("Upload queue:"));
 		AG_LabelSetPaddingBottom(lbl, 4);
 		tbl = AG_TableNewPolled(pane->div[0], AG_TABLE_EXPAND,
 		    PollUploadQueue, "%p", ma);
 		AG_TableAddCol(tbl, _("Program"), "<XXXXXXXXXXXXXX>", NULL);
 		AG_TableAddCol(tbl, _("Status"), NULL, NULL);
 
-		lbl = AG_LabelNewString(pane->div[1], 0, _("Remote queue:"));
+		lbl = AG_LabelNewS(pane->div[1], 0, _("Remote queue:"));
 		AG_LabelSetPaddingBottom(lbl, 4);
 		tbl = AG_TableNewPolled(pane->div[1], AG_TABLE_EXPAND,
 		    PollControllerQueue, "%p", ma);
