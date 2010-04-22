@@ -1,5 +1,10 @@
 # Public domain
 
+PACKAGE("cadtools")
+VERSION("1.0-beta")
+RELEASE("Face of the Goat")
+
+REGISTER_SECTION("Options specific to cadtools:")
 REGISTER("--enable-static",	"Produce a static binary [default: no]")
 REGISTER("--enable-warnings",	"Enable compiler warnings [default: no]")
 REGISTER("--enable-debug",	"Enable debugging code [default: no]")
@@ -13,15 +18,13 @@ C_NO_SECURE_WARNINGS()
 #C_EXTRA_WARNINGS()
 #C_FATAL_WARNINGS()
 
-HDEFINE(VERSION, "0.1-beta")
-HDEFINE(RELEASE, "Face of the Goat in the Mirror")
+HDEFINE(CADTOOLS_VERSION, "$VERSION")
 
 CHECK(cc)
-CHECK(agar, 1.4)
-CHECK(agar-math, 1.4)
-CHECK(agar-dev, 1.4)
-CHECK(agar-network)
-CHECK(freesg, 0.1)
+CHECK(agar, 1.4.1)
+CHECK(agar-math, 1.4.1)
+CHECK(agar-dev, 1.4.1)
+CHECK(freesg, 1.0)
 CHECK(pthreads)
 CHECK(getopt)
 
@@ -34,16 +37,10 @@ if [ "${HAVE_AGAR}" = "no" ]; then
 fi
 if [ "${HAVE_AGAR_MATH}" = "no" ]; then
 	echo "*"
-	echo "* CADTools requires the Agar-Math library. Please recompile."
+	echo "* Cadtools requires the Agar-Math library. Please recompile."
 	echo "* Agar without --disable-math."
 	echo "*"
 	exit 1
-fi
-if [ "${HAVE_AGAR_NETWORK}" = "no" ]; then
-	echo "*"
-	echo "* Warning: CADTools's CAM functionality requires network support,"
-	echo "* but Agar was not compiled with --enable-network"
-	echo "*"
 fi
 
 if [ "${HAVE_FREESG}" = "no" ]; then
@@ -66,9 +63,11 @@ if [ "${enable_warnings}" = "yes" ]; then
 	MDEFINE(CFLAGS, "$CFLAGS -Wno-unused")
 fi
 if [ "${enable_debug}" = "yes" ]; then
-	HDEFINE(DEBUG, "yes")
+	C_DEFINE(CAD_DEBUG)
+	HDEFINE(CAD_DEBUG, "yes")
+	LD_OPTION(-g)
 else
-	HUNDEF(DEBUG)
+	HUNDEF(CAD_DEBUG)
 fi
 if [ "${enable_static}" = "yes" ]; then
 	MDEFINE(LDFLAGS, "-static")
