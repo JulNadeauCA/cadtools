@@ -2,8 +2,8 @@
 #
 # Public domain.
 # 
-# Scan C header files and generate preprocessed versions of them in the
-# specified target directory.
+# Create shadow directories of symbolic links to include files in the
+# source directory (i.e., for ./configure --include=link).
 #
 
 my $outdir = '';
@@ -33,14 +33,9 @@ sub Scan ($$)
 			next;
 		}
 		if ($ent =~ /\.h$/) {
-			my @o = readpipe("perl mk/gen-declspecs.pl '$file'");
-			if ($? != 0) {
-				print STDERR "gen-declspecs.pl failed\n";
-				exit(1);
+			unless (symlink($srcdir.'/'.$file, $outfile)) {
+				print STDERR "$file to $outfile: $!\n";
 			}
-			open(OUT, ">$outfile") || die "$outfile: $!";
-			print OUT @o;
-			close(OUT);
 		}
 	}
 	closedir(CWD);
@@ -66,11 +61,12 @@ sub CleanEmptyDirs ($)
 	closedir(CWD);
 }
 
-if (@ARGV < 1) {
-	print STDERR "Usage: gen-includes.pl [directory]\n";
+if (@ARGV < 2) {
+	print STDERR "Usage: gen-includelinks.pl [source-dir] [target-dir]\n";
 	exit(1);
 }
-$outdir = $ARGV[0];
+$srcdir = $ARGV[0];
+$outdir = $ARGV[1];
 
 if (! -e $outdir) {
 	my $now = localtime;

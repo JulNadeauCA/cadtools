@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 #
-# Copyright (c) 2003-2007 Hypertriton, Inc. <http://hypertriton.com/>
+# Copyright (c) 2003-2014 Hypertriton, Inc. <http://hypertriton.com/>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,12 +31,14 @@ $COOKIE = ".mkconcurrent_$$";
 @DIRS = ();
 $BUILD = '';
 @MKFILES = (
-	'Makefile.proj',
-	'Makefile.prog',
+	'Makefile\.(prog|proj|in)',
 	'\.mk$',
 	'\.inc$',
+	'\.m4$',
+	'^README$',
 	'^mkdep$',
 	'^install-includes.sh$',
+	'^install-sh$',
 	'^config\.(guess|sub)$',
 	'^configure$',
 	'^configure\.in$',
@@ -47,27 +49,28 @@ $BUILD = '';
 	'^cmpfiles\.pl$',
 	'^cleanfiles\.pl$',
 	'^gen-includes\.pl$',
+	'^gen-includelinks\.pl$',
 	'^gen-declspecs\.pl$',
 	'^install-manpages\.sh$',
 );
+my %V = ();
 
 sub Debug
 {
 	print STDERR @_, "\n";
 }
 
-sub ConvertMakefile
+# Return a Makefile's contents, with lines expanded and variables substituted.
+sub ProcessedMakefile ($$)
 {
-	my ($dir, $ndir, $ent) = @_;
+	my $path = shift;
+	my $dir = shift;
 
-	open(SRCMAKEFILE, "$dir/$ent") ||
-	    die "src: $dir/$ent: $!";
-	open(DSTMAKEFILE, ">$BUILD/$ndir/$ent") ||
-	    die "dest: $BUILD/$ndir/$ent: $!";
-
+	if (!open(MF, $path)) {
+		return ();
+	}
 	my @lines = ();
-	my $line = '';
-	foreach $_ (<SRCMAKEFILE>) {
+	foreach $_ (<MF>) {
 		chop;
 
 		if (/^(.+)\\$/) {			# Expansion
@@ -80,6 +83,54 @@ sub ConvertMakefile
 				push @lines, $_;
 			}
 		}
+	}
+	foreach $_ (@lines) {
+		if (/^\s*#/) { next; }
+		if (/^\t/) { next; }
+		s/\$\{(\w+)\}/$V{$1}/g;
+		if (/^\s*(\w+)\s*=\s*"(.+)"$/ ||
+		    /^\s*(\w+)\s*=\s*(.+)$/) {
+			$V{$1} = $2;
+		} elsif (/^\s*(\w+)\s*\+=\s*"(.+)"$/ ||
+		         /^\s*(\w+)\s*\+=\s*(.+)$/) {
+			if (exists($V{$1}) && $V{$1} ne '') {
+				$V{$1} .= ' '.$2;
+			} else {
+				$V{$1} = $2;
+			}
+		}
+		if (/^\s*include\s+(.+)$/) {
+			my $incl = $1;
+			if ($incl =~ /Makefile\.config$/) {
+				# Special case: configure-generated file
+				ProcessedMakefile($BUILD.'/'.$dir.'/'.$incl, $BUILD);
+			} else {
+				ProcessedMakefile($dir.'/'.$incl, $dir);
+			}
+		}
+	}
+	close(MF);
+
+#	if (open(FOUT, ">>processed.txt")) {
+#		print FOUT "======================= $path (in $dir) ====================================\n";
+#		print FOUT join("\n", @lines), "\n";
+#		close(FOUT);
+#	}
+	return (@lines);
+}
+
+sub ConvertMakefile
+{
+	my ($dir, $ndir, $ent) = @_;
+	my @lines;
+
+	open(DSTMAKEFILE, ">$BUILD/$ndir/$ent") ||
+	    die "dest: $BUILD/$ndir/$ent: $!";
+
+	%V = ();
+	@lines = ProcessedMakefile($dir.'/'.$ent, $dir);
+	unless (@lines) {
+		return;
 	}
 
 	print DSTMAKEFILE << "EOF";
@@ -101,6 +152,7 @@ EOF
 	my $libtool = 1;
 	my $shared = 0;
 	my $static = 1;
+	my $module = 1;
 	my $isProg = 0;
 	my $isLib = 0;
 
@@ -112,6 +164,7 @@ EOF
 		if (/^\s*USE_LIBTOOL\s*=\s*No\s*$/) { $libtool = 0; }
 		if (/^\s*LIB_SHARED\s*=\s*Yes\s*$/) { $shared = 1; }
 		if (/^\s*LIB_STATIC\s*=\s*No\s*$/) { $static = 0; }
+		if (/^\s*LIB_MODULE\s*=\s*Yes\s*$/) { $module = 1; }
 		if (/^\s*(SRCS|MAN\d|MOS)\s*=\s*(.+)$/) {
 			my $type = $1;
 
@@ -177,14 +230,14 @@ EOF
 						push @deps,
 						    "$shobj: $SRC/$ndir/$src";
 						push @deps, << 'EOF';
-	${LIBTOOL} --mode=compile ${CC} ${LIBTOOLFLAGS} ${OBJCFLAGS} ${CPPFLAGS} -c $<
+	${LIBTOOL} --mode=compile ${OBJC} ${LIBTOOLFLAGS} ${CFLAGS} ${OBJCFLAGS} ${CPPFLAGS} -c $<
 
 EOF
 					} else {
 						push @deps,
 						    "$obj: $SRC/$ndir/$src";
 						push @deps, << 'EOF',
-	${CC} ${OBJCFLAGS} ${CPPFLAGS} -c $<
+	${CC} ${CFLAGS} ${OBJCFLAGS} ${CPPFLAGS} -c $<
 
 EOF
 					}
@@ -194,27 +247,27 @@ EOF
 					push @deps,
 					    "$obj.cat$1: $SRC/$ndir/$src";
 					push @deps, << 'EOF';
-	@echo "${NROFF} -Tascii -mandoc $< > $@"
+	@echo "${MANDOC} -Tascii $< > $@"
 	@(cat $< | \
 	  sed 's,\$$SYSCONFDIR,${SYSCONFDIR},' | \
 	  sed 's,\$$PREFIX,${PREFIX},' | \
-	  sed 's,\$$SHAREDIR,${SHAREDIR},' | \
-	  ${NROFF} -Tascii -mandoc > $@) || (rm -f $@; true)
+	  sed 's,\$$DATADIR,${DATADIR},' | \
+	  ${MANDOC} -Tascii > $@) || (rm -f $@; true)
 
 EOF
-					# Nroff -> PostScript
-					# -> Sync with build.man.mk.
-					push @deps,
-					    "$obj.ps$1: $SRC/$ndir/$src";
-					push @deps, << 'EOF';
-	@echo "${NROFF} -Tps -mandoc $< > $@"
-	@(cat $< | \
-	  sed 's,\$$SYSCONFDIR,${SYSCONFDIR},' | \
-	  sed 's,\$$PREFIX,${PREFIX},' | \
-	  sed 's,\$$SHAREDIR,${SHAREDIR},' | \
-	  ${NROFF} -Tps -mandoc > $@) || (rm -f $@; true)
+					foreach my $fmt ('ps', 'pdf', 'html') {
+						push @deps,
+						    "$obj.$fmt$1: $SRC/$ndir/$src";
+						push @deps, << "EOF";
+	@echo "\${MANDOC} -T$fmt \$< > \$@"
+	@(cat \$< | \
+	  sed 's,\$\$SYSCONFDIR,\${SYSCONFDIR},' | \
+	  sed 's,\$\$PREFIX,\${PREFIX},' | \
+	  sed 's,\$\$DATADIR,\${DATADIR},' | \
+	  ${MANDOC} -T$fmt > \$@) || (rm -f \$@; true)
 
 EOF
+					}
 				} elsif ($type =~ /MOS/) {
 					# Portable object -> machine object
 					# -> Sync with build.po.mk.
@@ -231,7 +284,7 @@ EOF
 				}
 			}
 		}
-		if (/^\s*(SRCS|MAN\d|XCF|TTF|POS)\s*=\s*(.+)$/) {
+		if (/^\s*(SRCS|MAN\d|TTF|POS)\s*=\s*(.+)$/) {
 			my $type = $1;
 			my $srclist = $2;
 
@@ -287,7 +340,6 @@ EOF
 	}
 
 	close(DSTMAKEFILE);
-	close(SRCMAKEFILE);
 
 	# Prevent make from complaining.
 	open(DSTDEPEND, ">$BUILD/$ndir/.depend") or

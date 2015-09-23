@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2001-2009 Hypertriton, Inc. <http://hypertriton.com/>
+# Copyright (c) 2001-2012 Hypertriton, Inc. <http://hypertriton.com/>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,6 +31,8 @@ GMONOUT?=	gmon.out
 WINRES?=
 
 CC?=		cc
+OBJC?=		cc
+CXX?=		c++
 ASM?=		nasm
 LEX?=		lex
 YACC?=		yacc
@@ -39,7 +41,7 @@ WINDRES?=
 CFLAGS?=	-O2 -g
 CPPFLAGS?=
 CXXFLAGS?=
-OBJCFLAGS?=	${CFLAGS}
+OBJCFLAGS?=
 ASMFLAGS?=	-g -w-orphan-labels
 LFLAGS?=
 LIBL?=		-ll
@@ -48,9 +50,16 @@ YFLAGS?=	-d
 PROG_INSTALL?=	Yes
 PROG_TYPE?=	"CLI"
 PROG_GUID?=
+PROG_GUI_FLAGS?=
+PROG_CLI_FLAGS?=
 
+# Compat (DATADIR was formerly called SHAREDIR)
 SHARE?=none
 SHARESRC?=none
+SHAREDIR=${DATADIR}
+
+DATAFILES?=${SHARE}
+DATAFILES_SRC?=${SHARESRC}
 SRCS?=none
 OBJS?=none
 POBJS?=none
@@ -89,11 +98,11 @@ depend: depend-subdir
 .cpp.po:
 	${CXX} -pg -DPROF ${CXXFLAGS} ${CPPFLAGS} -o $@ -c $<
 
-# Compile C+Objective-C code into an object file
+# Compile Objective-C code into an object file
 .m.o:
-	${CC} ${OBJCFLAGS} ${CPPFLAGS} -o $@ -c $<
+	${OBJC} ${CFLAGS} ${OBJCFLAGS} ${CPPFLAGS} -o $@ -c $<
 .m.po:
-	${CC} -pg -DPROF ${OBJCFLAGS} ${CPPFLAGS} -o $@ -c $<
+	${OBJC} -pg -DPROF ${CFLAGS} ${OBJCFLAGS} ${CPPFLAGS} -o $@ -c $<
 
 # Compile assembly code into an object file
 .asm.o:
@@ -102,7 +111,7 @@ depend: depend-subdir
 # Compile a Lex lexer into an object file
 .l:
 	${LEX} ${LFLAGS} -o$@.yy.c $<
-	${CC} ${CFLAGS} ${CPPFLAGS} ${LDFLAGS} -o $@ $@.yy.c ${LIBL} ${LIBS}
+	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ $@.yy.c ${LIBL} ${LIBS}
 	@rm -f $@.yy.c
 .l.o:
 	${LEX} ${LFLAGS} -o$@.yy.c $<
@@ -118,7 +127,7 @@ depend: depend-subdir
 # Compile a Yacc parser into an object file
 .y:
 	${YACC} ${YFLAGS} -b $@ $<
-	${CC} ${CFLAGS} ${CPPFLAGS} ${LDFLAGS} -o $@ $@.tab.c ${LIBS}
+	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ $@.tab.c ${LIBS}
 	@rm -f $@.tab.c
 .y.o:
 	${YACC} ${YFLAGS} -b $@ $<
@@ -135,17 +144,19 @@ depend: depend-subdir
 _prog_objs:
 	@if [ "${PROG}" != "" -a "${OBJS}" = "none" \
 	      -a "${SRCS}" != "none" ]; then \
+	    FLIST=""; \
 	    for F in ${SRCS}; do \
 	        F=`echo $$F | sed 's/.[clym]$$/.o/'`; \
 	        F=`echo $$F | sed 's/.cc$$/.o/'`; \
 	        F=`echo $$F | sed 's/.cpp$$/.o/'`; \
 	        F=`echo $$F | sed 's/.asm$$/.o/'`; \
-	        ${MAKE} $$F; \
-		if [ $$? != 0 ]; then \
-			echo "${MAKE}: failure"; \
-			exit 1; \
-		fi; \
+		FLIST="$$FLIST $$F"; \
 	    done; \
+	    ${MAKE} $$FLIST; \
+	    if [ $$? != 0 ]; then \
+	        echo "${MAKE}: failure"; \
+		exit 1; \
+	    fi; \
 	fi
 	@if [ "${WINRES}" != "" -a "${WINDRES}" != "" ]; then \
 		echo "${WINDRES} -o ${WINRES}.o ${WINRES}"; \
@@ -156,22 +167,29 @@ _prog_objs:
 _prog_pobjs:
 	@if [ "${GMONOUT}" != "" -a "${POBJS}" = "none" \
 	      -a "${SRCS}" != "none" ]; then \
+	    FLIST=""; \
 	    for F in ${SRCS}; do \
 	        F=`echo $$F | sed 's/.[clym]$$/.po/'`; \
 	        F=`echo $$F | sed 's/.cc$$/.po/'`; \
 	        F=`echo $$F | sed 's/.cpp$$/.po/'`; \
 	        F=`echo $$F | sed 's/.asm$$/.po/'`; \
-	        ${MAKE} $$F; \
-		if [ $$? != 0 ]; then \
-			echo "${MAKE}: failure"; \
-			exit 1; \
-		fi; \
+		FLIST="$$FLIST $$F"; \
 	    done; \
+	    ${MAKE} $$FLIST; \
+	    if [ $$? != 0 ]; then \
+	        echo "${MAKE}: failure"; \
+	        exit 1; \
+	    fi; \
 	fi
 
 # Compile and link the program
 ${PROG}: _prog_objs ${OBJS}
 	@if [ "${PROG}" != "" -a "${SRCS}" != "none" ]; then \
+	    if [ "${PROG_TYPE}" = "GUI" ]; then \
+	    	export _prog_ldflags="${PROG_GUI_FLAGS}"; \
+	    else \
+	    	export _prog_ldflags="${PROG_CLI_FLAGS}"; \
+	    fi; \
 	    if [ "${OBJS}" = "none" ]; then \
 	        export _objs=""; \
                 for F in ${SRCS}; do \
@@ -182,23 +200,27 @@ ${PROG}: _prog_objs ${OBJS}
 	    	    _objs="$$_objs $$F"; \
                 done; \
 		if [ "${WINRES}" != "" ]; then \
-	            echo "${CC} ${CFLAGS} ${LDFLAGS} -o ${PROG} $$_objs ${LIBS} \
-		        ${WINRES}.o"; \
-	            ${CC} ${CFLAGS} ${LDFLAGS} -o ${PROG} $$_objs ${LIBS} \
-		        ${WINRES}.o; \
+	            echo "${CC} ${CFLAGS} ${LDFLAGS} $$_prog_ldflags \
+		        -o ${PROG} $$_objs ${LIBS} ${WINRES}.o"; \
+	            ${CC} ${CFLAGS} ${LDFLAGS} $$_prog_ldflags \
+		        -o ${PROG} $$_objs ${LIBS} ${WINRES}.o; \
 		else \
-	            echo "${CC} ${CFLAGS} ${LDFLAGS} -o ${PROG} $$_objs ${LIBS}"; \
-	            ${CC} ${CFLAGS} ${LDFLAGS} -o ${PROG} $$_objs ${LIBS}; \
+	            echo "${CC} ${CFLAGS} ${LDFLAGS} $$_prog_ldflags \
+		        -o ${PROG} $$_objs ${LIBS}"; \
+	            ${CC} ${CFLAGS} ${LDFLAGS} $$_prog_ldflags \
+		        -o ${PROG} $$_objs ${LIBS}; \
 		fi; \
 	    else \
 		if [ "${WINRES}" != "" ]; then \
-	            echo "${CC} ${CFLAGS} ${LDFLAGS} -o ${PROG} ${OBJS} ${LIBS} \
-		        ${WINRES}.o"; \
-	            ${CC} ${CFLAGS} ${LDFLAGS} -o ${PROG} ${OBJS} ${LIBS} \
-		        ${WINRES}.o; \
+	            echo "${CC} ${CFLAGS} ${LDFLAGS} $$_prog_ldflags \
+		        -o ${PROG} ${OBJS} ${LIBS} ${WINRES}.o"; \
+	            ${CC} ${CFLAGS} ${LDFLAGS} $$_prog_ldflags \
+		        -o ${PROG} ${OBJS} ${LIBS} ${WINRES}.o; \
 		else \
-	            echo "${CC} ${CFLAGS} ${LDFLAGS} -o ${PROG} ${OBJS} ${LIBS}"; \
-	            ${CC} ${CFLAGS} ${LDFLAGS} -o ${PROG} ${OBJS} ${LIBS}; \
+	            echo "${CC} ${CFLAGS} ${LDFLAGS} $$_prog_ldflags \
+		        -o ${PROG} ${OBJS} ${LIBS}"; \
+	            ${CC} ${CFLAGS} $$_prog_ldflags ${LDFLAGS} \
+		        -o ${PROG} ${OBJS} ${LIBS}; \
 		fi; \
 	    fi; \
 	fi
@@ -206,6 +228,11 @@ ${PROG}: _prog_objs ${OBJS}
 # Compile and link a profiled version of the program
 ${GMONOUT}: _prog_pobjs ${POBJS}
 	@if [ "${GMONOUT}" != "" -a "${SRCS}" != "none" ]; then \
+	    if [ "${PROG_TYPE}" = "GUI" ]; then \
+	    	export _prog_ldflags="${PROG_GUI_FLAGS}"; \
+	    else \
+	    	export _prog_ldflags="${PROG_CLI_FLAGS}"; \
+	    fi; \
 	    if [ "${POBJS}" = "none" ]; then \
 	        export _pobjs=""; \
                 for F in ${SRCS}; do \
@@ -215,13 +242,15 @@ ${GMONOUT}: _prog_pobjs ${POBJS}
 	    	    F=`echo $$F | sed 's/.asm$$/.po/'`; \
 	    	    _pobjs="$$_pobjs $$F"; \
                 done; \
-	        echo "${CC} -pg -DPROF ${LDFLAGS} -o ${GMONOUT} $$_pobjs \
-		    ${LIBS}"; \
-	        ${CC} -pg -DPROF ${LDFLAGS} -o ${GMONOUT} $$_pobjs ${LIBS}; \
+	        echo "${CC} -pg -DPROF ${LDFLAGS} $$_prog_ldflags \
+		    -o ${GMONOUT} $$_pobjs ${LIBS}"; \
+	        ${CC} -pg -DPROF ${LDFLAGS} $$_prog_ldflags \
+		    -o ${GMONOUT} $$_pobjs ${LIBS}; \
 	    else \
-	        echo "${CC} -pg -DPROF ${LDFLAGS} -o ${GMONOUT} ${POBJS} \
-		    ${LIBS}"; \
-	        ${CC} -pg -DPROF ${LDFLAGS} -o ${GMONOUT} ${POBJS} ${LIBS}; \
+	        echo "${CC} -pg -DPROF $$_prog_ldflags ${LDFLAGS} \
+		    -o ${GMONOUT} ${POBJS} ${LIBS}"; \
+	        ${CC} -pg -DPROF ${LDFLAGS} $$_prog_ldflags \
+		    -o ${GMONOUT} ${POBJS} ${LIBS}; \
 	    fi; \
 	fi
 
@@ -290,13 +319,13 @@ clean-prog:
 	fi
 
 cleandir-prog:
-	rm -f *.core config.log configure.lua tags
+	rm -f *.core config.log config.status configure.lua tags
 	if [ -e "./config/prefix.h" ]; then rm -fr ./config; fi
 	if [ -e "Makefile.config" ]; then echo >Makefile.config; fi
 	if [ -e ".depend" ]; then echo >.depend; fi
 
 install-prog:
-	@if [ ! -e "${BINDIR}" ]; then \
+	@if [ ! -e "${DESTDIR}${BINDIR}" ]; then \
 	    echo "${INSTALL_PROG_DIR} ${BINDIR}"; \
 	    ${SUDO} ${INSTALL_PROG_DIR} ${DESTDIR}${BINDIR}; \
 	fi
@@ -304,36 +333,36 @@ install-prog:
 	    echo "${INSTALL_PROG} ${PROG}${EXECSUFFIX} ${BINDIR}"; \
 	    ${SUDO} ${INSTALL_PROG} ${PROG}${EXECSUFFIX} ${DESTDIR}${BINDIR}; \
 	fi
-	@if [ "${SHARE}" != "none" ]; then \
-            if [ ! -d "${SHAREDIR}" ]; then \
-                echo "${INSTALL_DATA_DIR} ${SHAREDIR}"; \
-                ${SUDO} ${INSTALL_DATA_DIR} ${DESTDIR}${SHAREDIR}; \
+	@if [ "${DATAFILES}" != "none" ]; then \
+            if [ ! -d "${DESTDIR}${DATADIR}" ]; then \
+                echo "${INSTALL_DATA_DIR} ${DATADIR}"; \
+                ${SUDO} ${INSTALL_DATA_DIR} ${DESTDIR}${DATADIR}; \
             fi; \
-            for F in ${SHARE}; do \
-                echo "${INSTALL_DATA} $$F ${SHAREDIR}"; \
-                ${SUDO} ${INSTALL_DATA} $$F ${DESTDIR}${SHAREDIR}; \
+            for F in ${DATAFILES}; do \
+                echo "${INSTALL_DATA} $$F ${DATADIR}"; \
+                ${SUDO} ${INSTALL_DATA} $$F ${DESTDIR}${DATADIR}; \
             done; \
 	fi
-	@if [ "${SHARESRC}" != "none" ]; then \
-            if [ ! -d "${SHAREDIR}" ]; then \
-                echo "${INSTALL_DATA_DIR} ${SHAREDIR}"; \
-                ${SUDO} ${INSTALL_DATA_DIR} ${DESTDIR}${SHAREDIR}; \
+	@if [ "${DATAFILES_SRC}" != "none" ]; then \
+            if [ ! -d "${DESTDIR}${DATADIR}" ]; then \
+                echo "${INSTALL_DATA_DIR} ${DATADIR}"; \
+                ${SUDO} ${INSTALL_DATA_DIR} ${DESTDIR}${DATADIR}; \
             fi; \
 	    if [ "${SRC}" != "" ]; then \
-                for F in ${SHARESRC}; do \
-                    echo "${INSTALL_DATA} $$F ${SHAREDIR}"; \
+                for F in ${DATAFILES_SRC}; do \
+                    echo "${INSTALL_DATA} $$F ${DATADIR}"; \
                     ${SUDO} ${INSTALL_DATA} ${SRC}/${BUILDREL}/$$F \
-		    ${DESTDIR}${SHAREDIR}; \
+		    ${DESTDIR}${DATADIR}; \
                 done; \
 	    else \
-                for F in ${SHARESRC}; do \
-                    echo "${INSTALL_DATA} $$F ${SHAREDIR}"; \
-                    ${SUDO} ${INSTALL_DATA} $$F ${DESTDIR}${SHAREDIR}; \
+                for F in ${DATAFILES_SRC}; do \
+                    echo "${INSTALL_DATA} $$F ${DATADIR}"; \
+                    ${SUDO} ${INSTALL_DATA} $$F ${DESTDIR}${DATADIR}; \
                 done; \
 	    fi; \
 	fi
 	@if [ "${CONF}" != "none" ]; then \
-            if [ ! -d "${SYSCONFDIR}" ]; then \
+            if [ ! -d "${DESTDIR}${SYSCONFDIR}" ]; then \
                 echo "${INSTALL_DATA_DIR} ${SYSCONFDIR}"; \
                 ${SUDO} ${INSTALL_DATA_DIR} ${DESTDIR}${SYSCONFDIR}; \
             fi; \
@@ -363,10 +392,16 @@ deinstall-prog:
 	    echo "${DEINSTALL_PROG} ${BINDIR}/${PROG}${EXECSUFFIX}"; \
 	    ${SUDO} ${DEINSTALL_PROG} ${DESTDIR}${BINDIR}/${PROG}${EXECSUFFIX}; \
 	fi
-	@if [ "${SHARE}" != "none" ]; then \
-	    for F in ${SHARE}; do \
-	        echo "${DEINSTALL_DATA} ${SHAREDIR}/$$F"; \
-	        ${SUDO} ${DEINSTALL_DATA} ${DESTDIR}${SHAREDIR}/$$F; \
+	@if [ "${DATAFILES}" != "none" ]; then \
+	    for F in ${DATAFILES}; do \
+	        echo "${DEINSTALL_DATA} ${DATADIR}/$$F"; \
+	        ${SUDO} ${DEINSTALL_DATA} ${DESTDIR}${DATADIR}/$$F; \
+	    done; \
+	fi
+	@if [ "${DATAFILES_SRC}" != "none" ]; then \
+	    for F in ${DATAFILES_SRC}; do \
+	        echo "${DEINSTALL_DATA} ${DATADIR}/$$F"; \
+	        ${SUDO} ${DEINSTALL_DATA} ${DESTDIR}${DATADIR}/$$F; \
 	    done; \
 	fi
 	@if [ "${CONF}" != "none" ]; then \
