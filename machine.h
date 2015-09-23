@@ -5,15 +5,19 @@
 
 #include "begin_code.h"
 
+#define CAM_HOSTNAME_MAX	128
+#define CAM_PORT_MAX		16
+#define CAM_USERNAME_MAX	64
+#define CAM_PASSWORD_MAX	64
 #define CAM_MACHINE_DESCR_MAX	256
 
 typedef struct cam_machine {
 	struct ag_object obj;
 	char descr[CAM_MACHINE_DESCR_MAX];
-	char host[NC_HOSTNAME_MAX];	 /* Machine controller hostname */
-	char port[NC_HOSTNAME_MAX];	 /* machctld port */
-	char user[NC_USERNAME_MAX];	 /* machctld login name */
-	char pass[NC_PASSWORD_MAX];	 /* machctld password */
+	char host[CAM_HOSTNAME_MAX];	 /* Machine controller hostname */
+	char port[CAM_PORT_MAX];	 /* machctld port */
+	char user[CAM_USERNAME_MAX];	 /* machctld login name */
+	char pass[CAM_PASSWORD_MAX];	 /* machctld password */
 	AG_Mutex lock;
 	Uint32 flags;
 #define CAM_MACHINE_ENABLED	0x01	 /* Try to contact machine */
@@ -24,7 +28,9 @@ typedef struct cam_machine {
 #define CAM_MACHINE_DETACHED	(CAM_MACHINE_DETACHED1|CAM_MACHINE_DETACHED2)
 
 	SG *model;			 /* Simplified geometric model */
+#ifdef NETWORK
 	NC_Session sess;		 /* Network session with controller */
+#endif
 	AG_Thread thNet;		 /* Network I/O thread */
 	AG_Thread thInact;		 /* Inactivity timeout thread */
 	Uint32 tPong;			 /* Time of last ping */

@@ -12,7 +12,7 @@ REGISTER("--enable-debug",	"Enable debugging code [default: no]")
 C_DEFINE(_CADTOOLS_INTERNAL)
 C_DEFINE(_USE_AGAR_STD)
 C_DEFINE(_USE_AGAR_QUEUE)
-C_DEFINE(_USE_SG_MATH)
+C_DEFINE(_USE_AGAR_MATH)
 C_INCDIR($SRC)
 C_NO_SECURE_WARNINGS()
 #C_EXTRA_WARNINGS()
@@ -58,3 +58,8 @@ if [ "${enable_nls}" = "yes" ]; then
 		exit 1
 	fi
 fi
+
+echo "*"
+echo "* Configuration successful."
+echo "* Use \"make depend all install\" to build and install cadtools."
+echo "*"

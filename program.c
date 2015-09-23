@@ -44,9 +44,8 @@ Init(void *obj)
 
 	prog->type = CAM_PROGRAM_FABBSD;
 	prog->flags = 0;
-	prog->text = Strdup("/* FabBSD program */\n");
-	prog->textSize = strlen(prog->text)+1;
-	prog->tbText = NULL;
+	AG_TextInit(&prog->text, 0);
+	AG_TextSetS(&prog->text, "/* FabBSD program */\n");
 }
 
 static void
@@ -54,31 +53,17 @@ Destroy(void *obj)
 {
 	CAM_Program *prog = obj;
 
-	Free(prog->text);
+	AG_TextDestroy(&prog->text);
 }
 
 static int
 Load(void *obj, AG_DataSource *ds, const AG_Version *ver)
 {
 	CAM_Program *prog = obj;
-	char *textNew;
-	size_t sizeNew;
 
 	prog->type = (enum cam_program_type)AG_ReadUint8(ds);
 	prog->flags = (Uint)AG_ReadUint32(ds);
-	sizeNew = (size_t)AG_ReadUint32(ds);
-	if ((textNew = TryRealloc(prog->text, sizeNew)) == NULL) {
-		return (-1);
-	}
-	prog->text = textNew;
-	prog->textSize = sizeNew;
-	AG_CopyString(prog->text, ds, prog->textSize);
-
-	if (prog->tbText != NULL) {
-		AG_TextboxBindAutoASCII(prog->tbText, &prog->text,
-		    &prog->textSize);
-	}
-	return (0);
+	return AG_TextLoad(&prog->text, ds);
 }
 
 static int
@@ -88,9 +73,7 @@ Save(void *obj, AG_DataSource *ds)
 
 	AG_WriteUint8(ds, (Uint8)prog->type);
 	AG_WriteUint32(ds, (Uint32)prog->flags);
-	AG_WriteUint32(ds, (Uint32)prog->textSize);
-	AG_WriteString(ds, prog->text);
-
+	AG_TextSave(ds, &prog->text);
 	return (0);
 }
 
@@ -99,15 +82,13 @@ Edit(void *obj)
 {
 	CAM_Program *prog = obj;
 	AG_Window *win;
-	AG_Combo *com;
-	int i;
+	AG_Textbox *tb;
 
-	win = AG_WindowNew(0);
+	win = AG_WindowNew(AG_WINDOW_MAIN);
 
 	AG_WindowSetCaption(win, _("Program: %s"), AGOBJECT(prog)->name);
-	prog->tbText = AG_TextboxNew(win, AG_TEXTBOX_MULTILINE, NULL);
-	AG_Expand(prog->tbText);
-	AG_TextboxBindAutoASCII(prog->tbText, &prog->text, &prog->textSize);
+	tb = AG_TextboxNew(win, AG_TEXTBOX_MULTILINE|AG_TEXTBOX_EXPAND, NULL);
+	AG_TextboxBindText(tb, &prog->text);
 	
 	AG_LabelNew(win, 0, _("Program type:"));
 	AG_RadioNewUint(win, 0, camProgramTypeStrings, &prog->type);

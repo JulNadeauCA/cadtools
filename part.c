@@ -38,8 +38,7 @@ static void
 Init(void *obj)
 {
 	CAD_Part *part = obj;
-	M_Real i;
-	SG_Light *lt;
+/*	SG_Light *lt; */
 	SG_Camera *cam;
 
 	part->descr[0] = '\0';
@@ -110,7 +109,7 @@ FindFeatures(AG_Tlist *tl, AG_Object *pob, int depth)
 		}
 	}
 
-	it = AG_TlistAddS(tl, AG_ObjectIcon(pob), pob->name);
+	it = AG_TlistAddS(tl, NULL, pob->name);
 	it->depth = depth;
 	it->p1 = pob;
 	if (nosel) {
@@ -207,37 +206,40 @@ tryname:
 }
 
 /* Save part to native cadtools format. */
-static void
+static int
 SavePartToNative(AG_Event *event)
 {
 	CAD_Part *part = AG_PTR(1);
 	char *path = AG_STRING(2);
 
 	if (AG_ObjectSaveToFile(part, path) == -1) {
-		AG_TextMsgFromError();
+		return (-1);
 	}
 	AG_ObjectSetArchivePath(part, path);
 	AG_ObjectSetNameS(part, AG_ShortFilename(path));
+	return (0);
 }
 
 /* Save part to Stanford PLY format. */
-static void
+static int
 SavePartToPLY(AG_Event *event)
 {
 //	CAD_Part *part = AG_PTR(1);
 //	char *path = AG_STRING(2);
 
-	AG_TextMsg(AG_MSG_ERROR, _("Not implemented yet"));
+	AG_SetError("Unimplemented");
+	return (-1);
 }
 
 /* Save part to Wavefront OBJ format. */
-static void
+static int
 SavePartToOBJ(AG_Event *event)
 {
 //	CAD_Part *part = AG_PTR(1);
 //	char *path = AG_STRING(2);
 
-	AG_TextMsg(AG_MSG_ERROR, _("Not implemented yet"));
+	AG_SetError("Unimplemented");
+	return (-1);
 }
 
 void
@@ -260,7 +262,7 @@ CAD_PartSaveMenu(AG_FileDlg *fd, CAD_Part *part)
 }
 
 /* Open a part in native cadtools format. */
-static void
+static int
 OpenPartNative(AG_Event *event)
 {
 	char *path = AG_STRING(2);
@@ -268,27 +270,25 @@ OpenPartNative(AG_Event *event)
 
 	obj = AG_ObjectNew(&vfsRoot, NULL, &cadPartClass);
 	if (AG_ObjectLoadFromFile(obj, path) == -1) {
-		AG_TextMsgFromError();
 		AG_ObjectDetach(obj);
 		AG_ObjectDestroy(obj);
-		return;
+		return (-1);
 	}
 	AG_ObjectSetArchivePath(obj, path);
 	AG_ObjectSetNameS(obj, AG_ShortFilename(path));
 	CAD_OpenObject(obj);
+	return (0);
 }
 
 /* Generate a new part from a mesh in PLY format. */
-static void
+static int
 OpenPartFromPLY(AG_Event *event)
 {
-	AG_Object *fd = AG_SELF();
+/*	AG_Object *fd = AG_SELF(); */
 	char *path = AG_STRING(1);
 	AG_FileType *ft = AG_PTR(2);
 	CAD_Part *part;
 	Uint flags = 0;
-
-	fprintf(stderr, "Loading %s (%s)...", path, ft->descr);
 
 	part = Malloc(sizeof(CAD_Part));
 	AG_ObjectInit(part, &cadPartClass);
@@ -308,16 +308,14 @@ OpenPartFromPLY(AG_Event *event)
 	if (SG_ObjectLoadPLY(part->so, path, flags) == -1) {
 		goto fail;
 	}
-	SG_UniScale(part->so, AG_FileOptionFlt(ft,"ply.scale"));
-#if 0
-	SG_ObjectNormalize(part->so);
-#endif
+	SG_Scale(part->so, AG_FileOptionFlt(ft,"ply.scale"));
+/*	SG_ObjectNormalize(part->so); */
 	CAD_OpenObject(part);
-	fprintf(stderr, "Done\n");
-	return;
+	return (0);
 fail:
 	AG_TextMsg(AG_MSG_ERROR, "%s: %s", path, AG_GetError());
 	AG_ObjectDestroy(part->so);
+	return (-1);
 }
 
 void
@@ -348,7 +346,7 @@ Edit(void *obj)
 	AG_Pane *hPane;
 	SG_View *sgv;
 
-	win = AG_WindowNew(0);
+	win = AG_WindowNew(AG_WINDOW_MAIN);
 	AG_WindowSetCaptionS(win, AGOBJECT(part)->name);
 
 	toolbar = AG_ToolbarNew(NULL, AG_TOOLBAR_VERT, 1, 0);

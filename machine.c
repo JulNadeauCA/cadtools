@@ -254,6 +254,7 @@ skip:
 }
 #endif /* NETWORK */
 
+#if 0
 static void
 SetViewCamera(AG_Event *event)
 {
@@ -299,19 +300,20 @@ ShowLightSettings(AG_Event *event)
 	AG_ObjectAttach(win, SGNODE_OPS(lt)->edit(lt, sgv));
 	AG_WindowShow(win);
 }
+#endif
 
 static void
 PollUploadQueue(AG_Event *event)
 {
-	AG_Table *tbl = AG_SELF();
-	CAM_Machine *ma = AG_PTR(1);
+//	AG_Table *tbl = AG_SELF();
+//	CAM_Machine *ma = AG_PTR(1);
 }
 
 static void
 PollControllerQueue(AG_Event *event)
 {
-	AG_Table *tbl = AG_SELF();
-	CAM_Machine *ma = AG_PTR(1);
+//	AG_Table *tbl = AG_SELF();
+//	CAM_Machine *ma = AG_PTR(1);
 }
 
 static void
@@ -348,7 +350,7 @@ Edit(void *obj)
 	AG_Pane *pane;
 	AG_Label *lbl;
 
-	win = AG_WindowNew(0);
+	win = AG_WindowNew(AG_WINDOW_MAIN);
 	AG_WindowSetCaptionS(win, AGOBJECT(ma)->name);
 
 	nb = AG_NotebookNew(win, AG_NOTEBOOK_EXPAND);

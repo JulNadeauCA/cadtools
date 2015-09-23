@@ -52,7 +52,7 @@ AG_Menu *mdiMenu = NULL;
 AG_Object vfsRoot;
 
 static void *objFocus = NULL;
-static AG_Mutex objLock;
+static int terminating = 0;
 
 static void
 RegisterClasses(void)
@@ -173,7 +173,7 @@ OpenMachine(AG_Event *event)
 #endif
 
 /* Event handler for object open from file. */
-void
+int
 CAD_GUI_OpenObject(AG_Event *event)
 {
 	AG_ObjectClass *cls = AG_PTR(1);
@@ -181,20 +181,17 @@ CAD_GUI_OpenObject(AG_Event *event)
 	AG_Object *obj;
 
 	if ((obj = AG_ObjectNew(&vfsRoot, NULL, cls)) == NULL) {
-		goto fail;
+		return (-1);
 	}
 	if (AG_ObjectLoadFromFile(obj, path) == -1) {
-		AG_TextMsgFromError();
 		AG_ObjectDetach(obj);
 		AG_ObjectDestroy(obj);
-		goto fail;
+		return (-1);
 	}
 	AG_ObjectSetArchivePath(obj, path);
 	AG_ObjectSetNameS(obj, AG_ShortFilename(path));
 	CAD_OpenObject(obj);
-	return;
-fail:
-	AG_TextError(_("Could not open object: %s"), AG_GetError());
+	return (0);
 }
 
 void
@@ -202,7 +199,6 @@ CAD_GUI_OpenDlg(AG_Event *event)
 {
 	AG_Window *win;
 	AG_FileDlg *fd;
-	AG_FileType *ft;
 	AG_Pane *hPane;
 
 	win = AG_WindowNew(0);
@@ -228,26 +224,28 @@ CAD_GUI_OpenDlg(AG_Event *event)
 	AG_PaneMoveDividerPct(hPane, 66);
 }
 
-static void
+static int
 SaveSketchToSK(AG_Event *event)
 {
 	SK *sk = AG_PTR(1);
 	char *path = AG_STRING(2);
 
 	if (AG_ObjectSaveToFile(sk, path) == -1) {
-		AG_TextMsgFromError();
+		return (-1);
 	}
 	AG_ObjectSetArchivePath(sk, path);
 	AG_ObjectSetNameS(sk, AG_ShortFilename(path));
+	return (0);
 }
 
-static void
+static int
 SaveSketchToDXF(AG_Event *event)
 {
 //	SK *sk = AG_PTR(1);
 //	char *path = AG_STRING(2);
 
-	AG_TextMsg(AG_MSG_ERROR, "Not implemented yet");
+	AG_SetError("Unimplemented");
+	return (-1);
 }
 
 void
@@ -321,7 +319,7 @@ AbortQuit(AG_Event *event)
 {
 	AG_Window *win = AG_PTR(1);
 
-	agTerminating = 0;
+	terminating = 0;
 	AG_ObjectDetach(win);
 }
 
@@ -332,10 +330,10 @@ CAD_GUI_Quit(AG_Event *event)
 	AG_Window *win;
 	AG_Box *box;
 
-	if (agTerminating) {
+	if (terminating) {
 		ConfirmQuit(NULL);
 	}
-	agTerminating = 1;
+	terminating = 1;
 
 	AGOBJECT_FOREACH_CHILD(obj, &vfsRoot, ag_object) {
 		if (AG_ObjectChanged(obj))
@@ -413,7 +411,7 @@ CAD_FileMenu(AG_MenuItem *m, void *obj)
 
 	mDevs = AG_MenuNode(m, _("Devices"), NULL);
 	{
-		CAM_Machine *mach;
+/*		CAM_Machine *mach; */
 
 		AG_MenuAction(mDevs, _("New CNC lathe..."), agIconDoc.s,
 		    CAD_GUI_NewObject, "%p", &camLatheClass);
@@ -469,7 +467,6 @@ int
 main(int argc, char *argv[])
 {
 	int c, i;
-	char *s;
 	char *driverSpec = "<OpenGL>";
 
 #ifdef ENABLE_NLS

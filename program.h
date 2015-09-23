@@ -15,9 +15,7 @@ typedef struct cam_program {
 	struct ag_object obj;
 	enum cam_program_type type;		/* Program language */
 	Uint flags;
-	char *text;				/* Program text */
-	Uint textSize;				/* In bytes */
-	AG_Textbox *tbText;
+	AG_Text text;				/* Program text */
 } CAM_Program;
 
 __BEGIN_DECLS

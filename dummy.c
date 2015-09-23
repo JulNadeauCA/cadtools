@@ -82,7 +82,7 @@ Edit(void *obj)
 	CAD_Dummy *dummy = obj;
 	AG_Window *win;
 
-	win = AG_WindowNew(0);
+	win = AG_WindowNew(AG_WINDOW_MAIN);
 	AG_WindowSetCaption(win, _("Dummy: %s"), AGOBJECT(dummy)->name);
 	return (win);
 }
