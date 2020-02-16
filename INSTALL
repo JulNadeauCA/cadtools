@@ -1,11 +1,10 @@
 
 Prerequisites
 -------------
-cadtools requires the Agar and FreeSG libraries. You can compile them from
-source or download one of the many precompiled packages at:
+cadtools requires the Agar library. You can compile it from
+source or download a binary package at:
 
 	http://libagar.org/download.html
-	http://freesg.org/download.html
 
 Installation under Unix
 -----------------------
@@ -18,7 +17,7 @@ Installation under Unix
 
 3) Let the developers know of your success/failure. If you happen to run
    into trouble, please set a valid return address so we can respond.
-    $ cat config.log | mail -s "compiles fine" compile@freesg.org
+    $ cat config.log | mail -s "compiles fine" compile@libagar.org
 
 Installation under SGI IRIX
 ---------------------------

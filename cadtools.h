@@ -1,13 +1,16 @@
 #ifndef _CADTOOLS_H_
 #define _CADTOOLS_H_
 
-#include <freesg/sg.h>
-#include <freesg/sg/sg_view.h>
+#include <agar/sg.h>
+#include <agar/sg/sg_view.h>
+#include <agar/sk.h>
+#include <agar/sk/sk_view.h>
+
 #include <agar/core/types.h>
 
 #ifdef _CADTOOLS_INTERNAL
 
-#include <config/enable_nls.h>
+#include <cadtools/config/enable_nls.h>
 #ifdef ENABLE_NLS
 # include <libintl.h>
 # define _(String) dgettext("cadtools",String)
@@ -52,7 +55,7 @@ extern AG_Object vfsRoot;
 
 AG_Window *CAD_OpenObject(void *);
 void       CAD_GUI_NewObject(AG_Event *);
-int        CAD_GUI_OpenObject(AG_Event *);
+void       CAD_GUI_OpenObject(AG_Event *);
 void       CAD_GUI_OpenDlg(AG_Event *);
 void       CAD_GUI_Save(AG_Event *);
 void       CAD_GUI_SaveAsDlg(AG_Event *);

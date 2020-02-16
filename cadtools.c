@@ -30,7 +30,7 @@
 #include <agar/core.h>
 #include <agar/gui.h>
 
-#include <config/have_agar_dev.h>
+#include <cadtools/config/have_agar_dev.h>
 #ifdef HAVE_AGAR_DEV
 #include <agar/dev.h>
 #endif
@@ -43,10 +43,10 @@
 
 #include "cadtools.h"
 
-#include <config/have_getopt.h>
-#include <config/cadtools_version.h>
-#include <config/enable_nls.h>
-#include <config/localedir.h>
+#include <cadtools/config/have_getopt.h>
+#include <cadtools/config/cadtools_version.h>
+#include <cadtools/config/enable_nls.h>
+#include <cadtools/config/localedir.h>
 
 AG_Menu *mdiMenu = NULL;
 AG_Object vfsRoot;
@@ -114,7 +114,6 @@ WindowGainedFocus(AG_Event *event)
 {
 	AG_Object *obj = AG_PTR(1);
 	
-	AG_MutexLock(&objLock);
 	if (AG_OfClass(obj, "SK:*") ||
 	    AG_OfClass(obj, "CAD_Part:*") ||
 	    AG_OfClass(obj, "CAM_Program:*")) {
@@ -122,14 +121,11 @@ WindowGainedFocus(AG_Event *event)
 	} else {
 		objFocus = NULL;
 	}
-	AG_MutexUnlock(&objLock);
 }
 static void
 WindowLostFocus(AG_Event *event)
 {
-	AG_MutexLock(&objLock);
 	objFocus = NULL;
-	AG_MutexUnlock(&objLock);
 }
 
 /* Open a given object for edition. */
@@ -147,7 +143,7 @@ CAD_OpenObject(void *p)
 	AG_AddEvent(win, "window-lostfocus", WindowLostFocus, "%p", obj);
 	AG_AddEvent(win, "window-hidden", WindowLostFocus, "%p", obj);
 	AG_SetPointer(win, "object", obj);
-	AG_PostEvent(NULL, obj, "edit-open", NULL);
+	AG_PostEvent(obj, "edit-open", NULL);
 
 	AG_WindowShow(win);
 	return (win);
@@ -173,7 +169,7 @@ OpenMachine(AG_Event *event)
 #endif
 
 /* Event handler for object open from file. */
-int
+void
 CAD_GUI_OpenObject(AG_Event *event)
 {
 	AG_ObjectClass *cls = AG_PTR(1);
@@ -181,17 +177,19 @@ CAD_GUI_OpenObject(AG_Event *event)
 	AG_Object *obj;
 
 	if ((obj = AG_ObjectNew(&vfsRoot, NULL, cls)) == NULL) {
-		return (-1);
+		goto fail;
 	}
 	if (AG_ObjectLoadFromFile(obj, path) == -1) {
 		AG_ObjectDetach(obj);
 		AG_ObjectDestroy(obj);
-		return (-1);
+		goto fail;
 	}
-	AG_ObjectSetArchivePath(obj, path);
+	AG_SetString(obj, "archive-path", path);
 	AG_ObjectSetNameS(obj, AG_ShortFilename(path));
 	CAD_OpenObject(obj);
-	return (0);
+	return;
+fail:
+	AG_TextMsgFromError();
 }
 
 void
@@ -224,28 +222,18 @@ CAD_GUI_OpenDlg(AG_Event *event)
 	AG_PaneMoveDividerPct(hPane, 66);
 }
 
-static int
+static void
 SaveSketchToSK(AG_Event *event)
 {
 	SK *sk = AG_PTR(1);
 	char *path = AG_STRING(2);
 
 	if (AG_ObjectSaveToFile(sk, path) == -1) {
-		return (-1);
+		AG_TextMsgFromError();
+		return;
 	}
-	AG_ObjectSetArchivePath(sk, path);
+	AG_SetString(sk, "archive-path", path);
 	AG_ObjectSetNameS(sk, AG_ShortFilename(path));
-	return (0);
-}
-
-static int
-SaveSketchToDXF(AG_Event *event)
-{
-//	SK *sk = AG_PTR(1);
-//	char *path = AG_STRING(2);
-
-	AG_SetError("Unimplemented");
-	return (-1);
 }
 
 void
@@ -254,7 +242,6 @@ CAD_GUI_SaveAsDlg(AG_Event *event)
 	AG_Object *obj = AG_PTR(1);
 	AG_Window *win;
 	AG_FileDlg *fd;
-	AG_FileType *ft;
 
 	if (obj == NULL) {
 		AG_TextError(_("No object is selected for saving"));
@@ -273,12 +260,6 @@ CAD_GUI_SaveAsDlg(AG_Event *event)
 		 */
 		AG_FileDlgAddType(fd, _("cadtools sketch"), "*.sk",
 		    SaveSketchToSK, "%p", obj);
-		ft = AG_FileDlgAddType(fd, _("AutoCAD DXF"), "*.dxf",
-		    SaveSketchToDXF, "%p", obj);
-		{
-			AG_FileOptionNewBool(ft, _("Binary format"),
-			    "dxf.binary", 1);
-		}
 	} else if (AG_OfClass(obj, "CAD_Part:*")) {
 		CAD_PartSaveMenu(fd, (CAD_Part *)obj);
 	}
@@ -294,7 +275,7 @@ CAD_GUI_Save(AG_Event *event)
 		AG_TextError(_("No object is selected for saving"));
 		return;
 	}
-	if (AGOBJECT(obj)->archivePath == NULL) {
+	if (!AG_Defined(obj,"archive-path")) {
 		CAD_GUI_SaveAsDlg(event);
 		return;
 	}
@@ -514,7 +495,6 @@ main(int argc, char *argv[])
 
 	AG_ObjectInitStatic(&vfsRoot, NULL);
 	AG_ObjectSetName(&vfsRoot, "cadtools");
-	AG_MutexInit(&objLock);
 
 	/* Register our classes. */
 	RegisterClasses();

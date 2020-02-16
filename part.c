@@ -32,7 +32,7 @@
 #include "cadtools.h"
 #include "exboss.h"
 
-#include <freesg/sg/sg_load_ply.h>
+#include <agar/sg/sg_load_ply.h>
 
 static void
 Init(void *obj)
@@ -206,50 +206,28 @@ tryname:
 }
 
 /* Save part to native cadtools format. */
-static int
+static void
 SavePartToNative(AG_Event *event)
 {
 	CAD_Part *part = AG_PTR(1);
 	char *path = AG_STRING(2);
 
 	if (AG_ObjectSaveToFile(part, path) == -1) {
-		return (-1);
+		AG_TextMsgFromError();
+		return;
 	}
-	AG_ObjectSetArchivePath(part, path);
+	AG_SetString(part, "archive-path", path);
 	AG_ObjectSetNameS(part, AG_ShortFilename(path));
-	return (0);
-}
-
-/* Save part to Stanford PLY format. */
-static int
-SavePartToPLY(AG_Event *event)
-{
-//	CAD_Part *part = AG_PTR(1);
-//	char *path = AG_STRING(2);
-
-	AG_SetError("Unimplemented");
-	return (-1);
-}
-
-/* Save part to Wavefront OBJ format. */
-static int
-SavePartToOBJ(AG_Event *event)
-{
-//	CAD_Part *part = AG_PTR(1);
-//	char *path = AG_STRING(2);
-
-	AG_SetError("Unimplemented");
-	return (-1);
 }
 
 void
 CAD_PartSaveMenu(AG_FileDlg *fd, CAD_Part *part)
 {
-	AG_FileType *ft;
+/*	AG_FileType *ft; */
 
 	AG_FileDlgAddType(fd, _("cadtools part"), "*.part",
 	    SavePartToNative, "%p", part);
-
+#if 0
 	ft = AG_FileDlgAddType(fd, _("Stanford PLY"), "*.ply",
 	    SavePartToPLY, "%p", part);
 	AG_FileOptionNewString(ft, _("Comment: "), "ply.comment", "");
@@ -259,10 +237,11 @@ CAD_PartSaveMenu(AG_FileDlg *fd, CAD_Part *part)
 
 	AG_FileDlgAddType(fd, _("Wavefront OBJ"), "*.obj",
 	    SavePartToOBJ, "%p", part);
+#endif
 }
 
 /* Open a part in native cadtools format. */
-static int
+static void
 OpenPartNative(AG_Event *event)
 {
 	char *path = AG_STRING(2);
@@ -270,18 +249,18 @@ OpenPartNative(AG_Event *event)
 
 	obj = AG_ObjectNew(&vfsRoot, NULL, &cadPartClass);
 	if (AG_ObjectLoadFromFile(obj, path) == -1) {
+		AG_TextMsgFromError();
 		AG_ObjectDetach(obj);
 		AG_ObjectDestroy(obj);
-		return (-1);
+		return;
 	}
-	AG_ObjectSetArchivePath(obj, path);
+	AG_SetString(obj, "archive-path", path);
 	AG_ObjectSetNameS(obj, AG_ShortFilename(path));
 	CAD_OpenObject(obj);
-	return (0);
 }
 
 /* Generate a new part from a mesh in PLY format. */
-static int
+static void
 OpenPartFromPLY(AG_Event *event)
 {
 /*	AG_Object *fd = AG_SELF(); */
@@ -311,11 +290,10 @@ OpenPartFromPLY(AG_Event *event)
 	SG_Scale(part->so, AG_FileOptionFlt(ft,"ply.scale"));
 /*	SG_ObjectNormalize(part->so); */
 	CAD_OpenObject(part);
-	return (0);
+	return;
 fail:
 	AG_TextMsg(AG_MSG_ERROR, "%s: %s", path, AG_GetError());
 	AG_ObjectDestroy(part->so);
-	return (-1);
 }
 
 void

@@ -143,7 +143,7 @@ Destroy(void *obj)
 {
 	CAM_Machine *ma = obj;
 
-	AG_PostEvent(NULL, ma, "detached", NULL);
+	AG_PostEvent(ma, "detached", NULL);
 #ifdef NETWORK
 	NC_Destroy(&ma->sess);
 #endif
